@@ -27,6 +27,18 @@ const authSubmitBtn = document.getElementById('auth-submit');
 const authToggle = document.getElementById('toggle-auth');
 const authToggleText = document.getElementById('auth-toggle');
 
+// DOM Elements
+const authContainer = document.getElementById('auth-container');
+const welcomeContainer = document.getElementById('welcome-container');
+const emailInput = document.getElementById('email');
+const passwordInput = document.getElementById('password');
+const authButton = document.getElementById('auth-button');
+const toggleLink = document.getElementById('toggle-link');
+const errorMessage = document.getElementById('error-message');
+const userEmailSpan = document.getElementById('user-email');
+const logoutButton = document.getElementById('logout-button');
+
+
 
 // State
 let isSignup = true;
@@ -56,6 +68,14 @@ function init() {
   
   // Render calendar
   renderCalendar();
+
+    // Check existing session
+  checkSession();
+  
+  // Event listeners
+  authButton.addEventListener('click', handleAuth);
+  toggleLink.addEventListener('click', toggleAuthMode);
+  logoutButton.addEventListener('click', handleLogout);
 }
 
 function setupEventListeners() {
@@ -376,6 +396,64 @@ async function createUserProfile(user, username) {
     ]);
     
   if (error) throw error;
+}
+
+async function checkSession() {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (user) showWelcomePage(user.email);
+}
+
+function toggleAuthMode(e) {
+  e.preventDefault();
+  isLogin = !isLogin;
+  authButton.textContent = isLogin ? 'Login' : 'Sign up';
+  document.getElementById('toggle-link').textContent = isLogin ? 'Sign up' : 'Login';
+  errorMessage.textContent = '';
+}
+
+async function handleAuth() {
+  const email = emailInput.value;
+  const password = passwordInput.value;
+
+  try {
+    let authResponse;
+    
+    if (isLogin) {
+      authResponse = await supabase.auth.signInWithPassword({ email, password });
+    } else {
+      authResponse = await supabase.auth.signUp({ email, password });
+      
+      // Create basic CRM profile
+      if (authResponse.data.user) {
+        await supabase
+          .from('profiles')
+          .insert([{ 
+            id: authResponse.data.user.id, 
+            email: email,
+            last_login: new Date().toISOString()
+          }]);
+      }
+    }
+
+    if (authResponse.error) throw authResponse.error;
+    showWelcomePage(email);
+  } catch (error) {
+    errorMessage.textContent = error.message;
+  }
+}
+
+function showWelcomePage(email) {
+  authContainer.style.display = 'none';
+  welcomeContainer.style.display = 'flex';
+  userEmailSpan.textContent = email;
+}
+
+async function handleLogout() {
+  await supabase.auth.signOut();
+  welcomeContainer.style.display = 'none';
+  authContainer.style.display = 'flex';
+  emailInput.value = '';
+  passwordInput.value = '';
 }
 
 // Show main app after auth

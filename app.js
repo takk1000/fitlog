@@ -1,9 +1,21 @@
 // Supabase Setup
+/*
 const supabase = supabase.createClient(
   'https://tvmayuytlngcqnvmizlk.supabase.co',
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR2bWF5dXl0bG5nY3Fudm1pemxrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTIxNzU0MTAsImV4cCI6MjA2Nzc1MTQxMH0.XMqHLbjNjh-FGA38BYbhVBdyORr8MQC6JkA-WIB9fH0',
   
 );
+*/
+
+// Import createClient directly from the ESM build
+    import { createClient } from 'https://unpkg.com/@supabase/supabase-js@2/+esm';
+
+    // Initialize your Supabase client
+    const SUPABASE_URL = 'https://tvmayuytlngcqnvmizlk.supabase.co'; // Replace with your Supabase URL
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR2bWF5dXl0bG5nY3Fudm1pemxrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTIxNzU0MTAsImV4cCI6MjA2Nzc1MTQxMH0.XMqHLbjNjh-FGA38BYbhVBdyORr8MQC6JkA-WIB9fH0'; // Replace with your Supabase Anon Key
+
+    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
 
 // DOM Elements
 const authScreen = document.getElementById('auth');

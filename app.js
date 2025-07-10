@@ -248,3 +248,140 @@ if ('serviceWorker' in navigator) {
       });
   });
 }
+
+
+// Auth State
+let isLoginMode = true;
+
+// DOM Elements
+const authForm = document.getElementById('auth-form');
+const usernameInput = document.getElementById('username');
+const passwordInput = document.getElementById('password');
+const authSubmitBtn = document.getElementById('auth-submit');
+const authToggle = document.getElementById('toggle-auth');
+const authToggleText = document.getElementById('auth-toggle');
+
+// Initialize auth form
+function initAuth() {
+  updateAuthUI();
+  
+  // Form submission
+  authForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const username = usernameInput.value;
+    const password = passwordInput.value;
+    
+    try {
+      if (isLoginMode) {
+        await handleLogin(username, password);
+      } else {
+        await handleSignup(username, password);
+      }
+    } catch (error) {
+      alert(`Error: ${error.message}`);
+    }
+  });
+  
+  // Toggle between login/signup
+  authToggle.addEventListener('click', (e) => {
+    e.preventDefault();
+    isLoginMode = !isLoginMode;
+    updateAuthUI();
+  });
+}
+
+// Update UI based on auth mode
+function updateAuthUI() {
+  if (isLoginMode) {
+    authSubmitBtn.textContent = 'Sign In';
+    authToggleText.innerHTML = 'Don\'t have an account? <a href="#" id="toggle-auth">Sign up</a>';
+  } else {
+    authSubmitBtn.textContent = 'Create Account';
+    authToggleText.innerHTML = 'Already have an account? <a href="#" id="toggle-auth">Sign in</a>';
+  }
+  usernameInput.value = '';
+  passwordInput.value = '';
+}
+
+// Handle login
+async function handleLogin(username, password) {
+  // In Supabase, we'll use email field but treat it as username
+  const { data, error } = await supabase.auth.signInWithPassword({
+    email: `${username}@yourdomain.com`, // Fake email domain
+    password: password
+  });
+  
+  if (error) {
+    // If user not found, offer to create account
+    if (error.message.includes('Invalid login credentials')) {
+      if (confirm('User not found. Would you like to create an account?')) {
+        isLoginMode = false;
+        updateAuthUI();
+        return;
+      }
+    }
+    throw error;
+  }
+  
+  // Login successful
+  console.log('Logged in:', data.user);
+  showAppContent();
+}
+
+// Handle signup
+async function handleSignup(username, password) {
+  // Check if username exists (simple version - in real app you'd query your users table)
+  const { data: { user } } = await supabase.auth.signInWithPassword({
+    email: `${username}@yourdomain.com`,
+    password: password
+  });
+  
+  if (user) {
+    throw new Error('Username already exists');
+  }
+  
+  // Create new user
+  const { data, error } = await supabase.auth.signUp({
+    email: `${username}@yourdomain.com`, // Fake email
+    password: password,
+    options: {
+      data: {
+        username: username // Store username in user_metadata
+      }
+    }
+  });
+  
+  if (error) throw error;
+  
+  // Create user profile in your database
+  await createUserProfile(data.user, username);
+  
+  // Auto-login after signup
+  await handleLogin(username, password);
+}
+
+// Create user profile in your database
+async function createUserProfile(user, username) {
+  const { error } = await supabase
+    .from('profiles')
+    .insert([
+      { 
+        id: user.id,
+        username: username,
+        email: `${username}@yourdomain.com`, // Fake email
+        created_at: new Date().toISOString()
+      }
+    ]);
+    
+  if (error) throw error;
+}
+
+// Show main app after auth
+function showAppContent() {
+  document.getElementById('auth-section').classList.add('hidden');
+  document.getElementById('app-content').classList.remove('hidden');
+  // Load user data here
+}
+
+// Initialize when DOM loads
+document.addEventListener('DOMContentLoaded', initAuth);

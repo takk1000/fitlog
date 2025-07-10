@@ -1,7 +1,7 @@
 {
   "name": "90-Day Fitness Challenge",
   "short_name": "FitChallenge",
-  "start_url": "takk1000.github.io/fitlog",
+  "start_url": "takk1000.github.io/fitlog/",
   "display": "standalone",
   "background_color": "#f8f9fa",
   "theme_color": "#4a6fa5",

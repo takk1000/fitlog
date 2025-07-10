@@ -3,6 +3,9 @@ const supabaseUrl = 'YOUR_SUPABASE_URL';
 const supabaseKey = 'YOUR_SUPABASE_KEY';
 const supabase = supabase.createClient(supabaseUrl, supabaseKey);
 
+
+
+
 // DOM Elements
 const authSection = document.getElementById('auth-section');
 const signupBtn = document.getElementById('signup-btn');
@@ -37,6 +40,17 @@ const toggleLink = document.getElementById('toggle-link');
 const errorMessage = document.getElementById('error-message');
 const userEmailSpan = document.getElementById('user-email');
 const logoutButton = document.getElementById('logout-button');
+
+// DOM Elements
+const authScreen = document.getElementById('auth-screen');
+const workoutScreen = document.getElementById('workout-screen');
+const workoutContainer = document.getElementById('workout-container');
+const completeButton = document.getElementById('complete-button');
+const progressBar = document.getElementById('progress-bar');
+const progressText = document.getElementById('progress-text');
+
+// Initialize
+initAuth();
 
 
 
@@ -77,6 +91,67 @@ function init() {
   toggleLink.addEventListener('click', toggleAuthMode);
   logoutButton.addEventListener('click', handleLogout);
 }
+
+
+async function initAuth() {
+  // Check existing session
+  const { data: { user } } = await supabase.auth.getUser();
+  if (user) {
+    loadWorkout();
+    authScreen.classList.add('hidden');
+    workoutScreen.classList.remove('hidden');
+  }
+  
+  // Setup auth listeners
+  document.getElementById('auth-button').addEventListener('click', handleAuth);
+  document.getElementById('toggle-link').addEventListener('click', toggleAuthMode);
+  document.getElementById('logout-button').addEventListener('click', handleLogout);
+}
+
+async function loadWorkout() {
+  // In a real app, you would fetch from Supabase:
+  // const { data } = await supabase.from('workouts').select('*').eq('day', currentDay);
+  
+  // For MVP, use sample data
+  const currentDay = 1; // Would calculate based on user's start date
+  const workoutKey = `workout_${currentDay % 4 || 4}`; // Cycle through 4 workouts
+  const workout = sampleWorkouts[workoutKey];
+  
+  workoutContainer.innerHTML = '';
+  workout.forEach(ex => {
+    const exEl = document.createElement('div');
+    exEl.className = 'exercise';
+    exEl.innerHTML = `
+      <h3>${ex.name}</h3>
+      <p>${ex.sets} sets × ${ex.reps}</p>
+    `;
+    workoutContainer.appendChild(exEl);
+  });
+  
+  // Update progress (would fetch from user's completion history)
+  const daysCompleted = 1; // Would query Supabase
+  const progress = (daysCompleted / 90) * 100;
+  progressBar.style.width = `${progress}%`;
+  progressText.textContent = `Day ${daysCompleted} of 90`;
+}
+
+completeButton.addEventListener('click', async () => {
+  // Record completion in Supabase
+  /* await supabase.from('completions').insert([{
+    user_id: (await supabase.auth.getUser()).data.user.id,
+    date: new Date().toISOString(),
+    workout_type: currentWorkout
+  }]); */
+  
+  // For MVP just show confirmation
+  completeButton.textContent = "✓ Workout Completed!";
+  completeButton.disabled = true;
+  setTimeout(() => {
+    completeButton.textContent = "Mark as Completed";
+    completeButton.disabled = false;
+  }, 2000);
+});
+
 
 function setupEventListeners() {
   signupBtn.addEventListener('click', () => showAuthModal(true));
@@ -194,6 +269,23 @@ function updateUIForAuth(isAuthenticated) {
   }
 }
 
+
+// Sample Workouts Data Structure (Would normally be in Supabase)
+const sampleWorkouts = {
+  "workout_1": [
+    { name: "Push-ups", sets: "3", reps: "10-12" },
+    { name: "Squats", sets: "3", reps: "15" },
+    { name: "Plank", sets: "3", reps: "30 sec" },
+    { name: "Lunges", sets: "3", reps: "10 each leg" },
+    { name: "Bicep Curls", sets: "3", reps: "12" },
+    { name: "Shoulder Press", sets: "3", reps: "10" },
+    { name: "Russian Twists", sets: "3", reps: "20" },
+    { name: "Jumping Jacks", sets: "3", reps: "30" }
+  ],
+  "workout_2": [
+    // ... similar structure for 3 more workouts
+  ]
+};
 function renderWorkout() {
   workoutList.innerHTML = '';
   
@@ -465,3 +557,5 @@ function showAppContent() {
 
 // Initialize when DOM loads
 document.addEventListener('DOMContentLoaded', initAuth);
+
+

@@ -19,6 +19,15 @@ const workoutList = document.getElementById('workout-list');
 const completeBtn = document.getElementById('complete-btn');
 const calendarGrid = document.getElementById('calendar-grid');
 
+// DOM Elements
+// const authForm = document.getElementById('auth-form');
+const usernameInput = document.getElementById('username');
+const passwordInput = document.getElementById('password');
+const authSubmitBtn = document.getElementById('auth-submit');
+const authToggle = document.getElementById('toggle-auth');
+const authToggleText = document.getElementById('auth-toggle');
+
+
 // State
 let isSignup = true;
 let currentUser = null;
@@ -253,13 +262,6 @@ if ('serviceWorker' in navigator) {
 // Auth State
 let isLoginMode = true;
 
-// DOM Elements
-const authForm = document.getElementById('auth-form');
-const usernameInput = document.getElementById('username');
-const passwordInput = document.getElementById('password');
-const authSubmitBtn = document.getElementById('auth-submit');
-const authToggle = document.getElementById('toggle-auth');
-const authToggleText = document.getElementById('auth-toggle');
 
 // Initialize auth form
 function initAuth() {

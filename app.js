@@ -1,7 +1,8 @@
 // Supabase Setup
 const supabase = supabase.createClient(
-  'YOUR_SUPABASE_URL',
-  'YOUR_SUPABASE_KEY'
+  'https://tvmayuytlngcqnvmizlk.supabase.co',
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR2bWF5dXl0bG5nY3Fudm1pemxrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTIxNzU0MTAsImV4cCI6MjA2Nzc1MTQxMH0.XMqHLbjNjh-FGA38BYbhVBdyORr8MQC6JkA-WIB9fH0',
+  
 );
 
 // DOM Elements

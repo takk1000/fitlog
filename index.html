@@ -1,4 +1,61 @@
-<html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>30-Day Fitness Challenge</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>30-Day Fitness Challenge</h1>
+      <div id="auth-section">
+        <button id="signup-btn">Sign Up</button>
+        <button id="login-btn">Login</button>
+        <button id="logout-btn" class="hidden">Logout</button>
+      </div>
+    </header>
 
-  heyyyy
+    <div id="auth-modal" class="modal hidden">
+      <div class="modal-content">
+        <span class="close">&times;</span>
+        <h2 id="modal-title">Sign Up</h2>
+        <form id="auth-form">
+          <input type="email" id="email" placeholder="Email" required>
+          <input type="password" id="password" placeholder="Password" required>
+          <button type="submit" id="auth-submit">Submit</button>
+        </form>
+      </div>
+    </div>
+
+    <main id="app-content" class="hidden">
+      <div class="progress-container">
+        <h2>Your Progress</h2>
+        <div class="progress-bar">
+          <div id="progress-fill" class="progress-fill"></div>
+        </div>
+        <p id="progress-text">0/30 days completed</p>
+      </div>
+
+      <div class="today-workout">
+        <h2>Today's Workout</h2>
+        <div id="workout-list" class="workout-list">
+          <!-- Exercises will be inserted here -->
+        </div>
+        <button id="complete-btn" class="primary-btn">Mark as Complete</button>
+      </div>
+
+      <div class="calendar">
+        <h2>Workout History</h2>
+        <div id="calendar-grid" class="calendar-grid">
+          <!-- Calendar days will be inserted here -->
+        </div>
+      </div>
+    </main>
+  </div>
+</body>
 </html>

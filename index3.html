@@ -1,1 +1,479 @@
-heyy
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Workout Log</title>
+    <link rel="manifest" href="data:application/manifest+json;base64,ewogICJuYW1lIjogIldvcmtvdXQgTG9nIiwKICAic2hvcnRfbmFtZSI6ICJXb3Jrb3V0IiwKICAic3RhcnRfdXJsIjogIi8iLAogICJkaXNwbGF5IjogInN0YW5kYWxvbmUiLAogICJiYWNrZ3JvdW5kX2NvbG9yIjogIiNmZmZmZmYiLAogICJ0aGVtZV9jb2xvciI6ICIjNDI3NWZmIiwKICAiaWNvbnMiOiBbCiAgICB7CiAgICAgICJzcmMiOiAiZGF0YTppbWFnZS9zdmcreG1sO2Jhc2U2NCxQSE4yWnlCM2FXUjBhRDBpTWpRaUlHaGxhV2RvZEQwaU1qUWlJSFpwWlhkQ2IzZzlJakFnTUNBeU5DQXlOQ0lnZEhodGJHNXpQU0pvZEhSd2N6b3ZMM2QzZHk1M015NXZjbWN2TWpBd01DOXpkbWNpUGp4alpXbGpiR1VnWTNnOUlqRXlJaUJqZVQwaU1USWlJSEk5SWpFaUlHWnBiR3c5SWlNME1qYzFabVlpUGp3dlkyVnBjbU5zWlQ0OEwzTjJaejQ9IiwKICAICAgInNpemVzIjogIjI0eDI0IiwKICAgICAgInR5cGUiOiAiaW1hZ2Uvc3ZnK3htbCIKICAgIH0KICBdCn0=">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 400px;
+            margin: 0 auto;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            color: white;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .client-name {
+            color: rgba(255,255,255,0.9);
+            font-size: 1.2em;
+            font-weight: 300;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+        }
+        
+        .workout-title {
+            font-size: 1.3em;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: #333;
+        }
+        
+        .exercise {
+            display: flex;
+            align-items: center;
+            padding: 16px;
+            margin-bottom: 12px;
+            background: #f8f9fa;
+            border-radius: 12px;
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+        
+        .exercise:hover {
+            background: #e9ecef;
+        }
+        
+        .exercise.completed {
+            background: #d4edda;
+            border-color: #28a745;
+        }
+        
+        .exercise-checkbox {
+            width: 20px;
+            height: 20px;
+            margin-right: 16px;
+            cursor: pointer;
+            accent-color: #4275ff;
+        }
+        
+        .exercise-info {
+            flex: 1;
+        }
+        
+        .exercise-name {
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        
+        .exercise-reps {
+            color: #666;
+            font-size: 0.9em;
+        }
+        
+        .complete-btn {
+            width: 100%;
+            padding: 16px;
+            background: #4275ff;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+        }
+        
+        .complete-btn:hover {
+            background: #3461f0;
+            transform: translateY(-2px);
+        }
+        
+        .complete-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-top: 20px;
+        }
+        
+        .stat-card {
+            background: rgba(255,255,255,0.15);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            padding: 16px;
+            text-align: center;
+            color: white;
+        }
+        
+        .stat-number {
+            font-size: 2em;
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
+        
+        .stat-label {
+            font-size: 0.8em;
+            opacity: 0.9;
+        }
+        
+        .loading {
+            text-align: center;
+            color: white;
+            padding: 40px;
+        }
+        
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 16px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+        
+        .success {
+            background: #d4edda;
+            color: #155724;
+            padding: 16px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>💪 Workout Log</h1>
+            <div class="client-name" id="clientName">Loading...</div>
+        </div>
+        
+        <div id="loading" class="loading">
+            <div>Loading your workout...</div>
+        </div>
+        
+        <div id="error" class="error" style="display: none;"></div>
+        <div id="success" class="success" style="display: none;"></div>
+        
+        <div id="workoutCard" class="card" style="display: none;">
+            <div class="workout-title">Today's Workout</div>
+            <div id="exerciseList"></div>
+            <button id="completeBtn" class="complete-btn" disabled>Complete Workout</button>
+        </div>
+        
+        <div class="stats">
+            <div class="stat-card">
+                <div class="stat-number" id="weekCount">0</div>
+                <div class="stat-label">This Week</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="monthCount">0</div>
+                <div class="stat-label">This Month</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="quarterCount">0</div>
+                <div class="stat-label">90 Days</div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/supabase/2.39.3/supabase.min.js"></script>
+    <script>
+        // Supabase configuration
+        const SUPABASE_URL = 'https://tvmayuytlngcqnvmizlk.supabase.co' 
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR2bWF5dXl0bG5nY3Fudm1pemxrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTIxNzU0MTAsImV4cCI6MjA2Nzc1MTQxMH0.XMqHLbjNjh-FGA38BYbhVBdyORr8MQC6JkA-WIB9fH0'
+        
+        // Initialize Supabase client
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        
+        // Get client username from URL query string
+        const urlParams = new URLSearchParams(window.location.search);
+        const clientUsername = urlParams.get('user') || 'demo';
+        
+        // Sample workout data
+        const sampleWorkout = {
+            name: "Upper Body Strength",
+            exercises: [
+                { name: "Push-ups", reps: "3 sets of 12 reps", completed: false },
+                { name: "Pull-ups", reps: "3 sets of 8 reps", completed: false },
+                { name: "Dumbbell Press", reps: "3 sets of 10 reps", completed: false },
+                { name: "Bicep Curls", reps: "3 sets of 12 reps", completed: false }
+            ]
+        };
+        
+        // DOM elements
+        const loadingEl = document.getElementById('loading');
+        const errorEl = document.getElementById('error');
+        const successEl = document.getElementById('success');
+        const clientNameEl = document.getElementById('clientName');
+        const workoutCardEl = document.getElementById('workoutCard');
+        const exerciseListEl = document.getElementById('exerciseList');
+        const completeBtnEl = document.getElementById('completeBtn');
+        const weekCountEl = document.getElementById('weekCount');
+        const monthCountEl = document.getElementById('monthCount');
+        const quarterCountEl = document.getElementById('quarterCount');
+        
+        // State
+        let currentWorkout = { ...sampleWorkout };
+        let client = null;
+        
+        // Initialize app
+        async function init() {
+            try {
+                clientNameEl.textContent = `Welcome, ${clientUsername}!`;
+                
+                // Load or create client
+                await loadOrCreateClient();
+                
+                // Load workout stats
+                await loadWorkoutStats();
+                
+                // Setup workout
+                setupWorkout();
+                
+                loadingEl.style.display = 'none';
+                workoutCardEl.style.display = 'block';
+                
+            } catch (error) {
+                console.error('Error initializing app:', error);
+                showError('Failed to load workout data. Please try again.');
+                loadingEl.style.display = 'none';
+            }
+        }
+        
+        async function loadOrCreateClient() {
+            // Try to get existing client
+            const { data: existingClient, error: fetchError } = await supabase
+                .from('clients')
+                .select('*')
+                .eq('username', clientUsername)
+                .single();
+            
+            if (existingClient) {
+                client = existingClient;
+                return;
+            }
+            
+            // Create new client if doesn't exist
+            const { data: newClient, error: createError } = await supabase
+                .from('clients')
+                .insert([{
+                    username: clientUsername,
+                    name: clientUsername,
+                    created_at: new Date().toISOString()
+                }])
+                .select()
+                .single();
+            
+            if (createError) {
+                throw createError;
+            }
+            
+            client = newClient;
+        }
+        
+        async function loadWorkoutStats() {
+            const now = new Date();
+            const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+            const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+            const quarterAgo = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
+            
+            // Get workout completions
+            const { data: workouts, error } = await supabase
+                .from('workout_completions')
+                .select('completed_at')
+                .eq('client_id', client.id)
+                .gte('completed_at', quarterAgo.toISOString());
+            
+            if (error) {
+                console.error('Error loading workout stats:', error);
+                return;
+            }
+            
+            const weekCount = workouts?.filter(w => 
+                new Date(w.completed_at) >= weekAgo
+            ).length || 0;
+            
+            const monthCount = workouts?.filter(w => 
+                new Date(w.completed_at) >= monthAgo
+            ).length || 0;
+            
+            const quarterCount = workouts?.length || 0;
+            
+            weekCountEl.textContent = weekCount;
+            monthCountEl.textContent = monthCount;
+            quarterCountEl.textContent = quarterCount;
+        }
+        
+        function setupWorkout() {
+            exerciseListEl.innerHTML = '';
+            
+            currentWorkout.exercises.forEach((exercise, index) => {
+                const exerciseEl = document.createElement('div');
+                exerciseEl.className = 'exercise';
+                exerciseEl.innerHTML = `
+                    <input type="checkbox" class="exercise-checkbox" data-index="${index}">
+                    <div class="exercise-info">
+                        <div class="exercise-name">${exercise.name}</div>
+                        <div class="exercise-reps">${exercise.reps}</div>
+                    </div>
+                `;
+                
+                exerciseListEl.appendChild(exerciseEl);
+            });
+            
+            // Add event listeners for checkboxes
+            document.querySelectorAll('.exercise-checkbox').forEach(checkbox => {
+                checkbox.addEventListener('change', handleExerciseCheck);
+            });
+            
+            // Add event listener for complete button
+            completeBtnEl.addEventListener('click', completeWorkout);
+            
+            updateCompleteButton();
+        }
+        
+        function handleExerciseCheck(event) {
+            const index = parseInt(event.target.dataset.index);
+            const isChecked = event.target.checked;
+            
+            currentWorkout.exercises[index].completed = isChecked;
+            
+            // Update UI
+            const exerciseEl = event.target.closest('.exercise');
+            if (isChecked) {
+                exerciseEl.classList.add('completed');
+            } else {
+                exerciseEl.classList.remove('completed');
+            }
+            
+            updateCompleteButton();
+        }
+        
+        function updateCompleteButton() {
+            const allCompleted = currentWorkout.exercises.every(ex => ex.completed);
+            completeBtnEl.disabled = !allCompleted;
+        }
+        
+        async function completeWorkout() {
+            try {
+                completeBtnEl.disabled = true;
+                completeBtnEl.textContent = 'Saving...';
+                
+                // Save workout completion
+                const { error } = await supabase
+                    .from('workout_completions')
+                    .insert([{
+                        client_id: client.id,
+                        workout_name: currentWorkout.name,
+                        exercises_completed: currentWorkout.exercises.map(ex => ({
+                            name: ex.name,
+                            reps: ex.reps,
+                            completed: ex.completed
+                        })),
+                        completed_at: new Date().toISOString()
+                    }]);
+                
+                if (error) {
+                    throw error;
+                }
+                
+                showSuccess('Workout completed! Great job! 🎉');
+                
+                // Reset workout
+                currentWorkout.exercises.forEach(ex => ex.completed = false);
+                document.querySelectorAll('.exercise-checkbox').forEach(cb => {
+                    cb.checked = false;
+                });
+                document.querySelectorAll('.exercise').forEach(el => {
+                    el.classList.remove('completed');
+                });
+                
+                completeBtnEl.textContent = 'Complete Workout';
+                updateCompleteButton();
+                
+                // Refresh stats
+                await loadWorkoutStats();
+                
+            } catch (error) {
+                console.error('Error completing workout:', error);
+                showError('Failed to save workout. Please try again.');
+                completeBtnEl.disabled = false;
+                completeBtnEl.textContent = 'Complete Workout';
+            }
+        }
+        
+        function showError(message) {
+            errorEl.textContent = message;
+            errorEl.style.display = 'block';
+            successEl.style.display = 'none';
+            setTimeout(() => {
+                errorEl.style.display = 'none';
+            }, 5000);
+        }
+        
+        function showSuccess(message) {
+            successEl.textContent = message;
+            successEl.style.display = 'block';
+            errorEl.style.display = 'none';
+            setTimeout(() => {
+                successEl.style.display = 'none';
+            }, 5000);
+        }
+        
+        // Initialize app when DOM is loaded
+        document.addEventListener('DOMContentLoaded', init);
+        
+        // Register service worker for PWA
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('data:text/javascript;base64,Ly8gU2ltcGxlIHNlcnZpY2Ugd29ya2VyCnNlbGYuYWRkRXZlbnRMaXN0ZW5lcignZmV0Y2gnLCBldmVudCA9PiB7CiAgLy8gUGFzcyB0aHJvdWdoIGFsbCByZXF1ZXN0cwogIGV2ZW50LnJlc3BvbmRXaXRoKGZldGNoKGV2ZW50LnJlcXVlc3QpKTsKfSk7')
+                .then(registration => {
+                    console.log('SW registered: ', registration);
+                })
+                .catch(registrationError => {
+                    console.log('SW registration failed: ', registrationError);
+                });
+            });
+        }
+    </script>
+</body>
+</html>

@@ -258,22 +258,26 @@
             align-items: center;
             font-size: 0.7rem;
             transition: all 0.3s ease;
+            position: relative;
         }
         
         .progress-day.completed {
             background: var(--success);
             color: white;
-            transform: scale(1.05);
         }
         
         .progress-day.unsynced {
             background: var(--success-light);
             color: white;
-            transform: scale(1.05);
         }
         
         .progress-day.today {
             box-shadow: 0 0 0 2px var(--secondary);
+        }
+        
+        .day-number {
+            font-weight: bold;
+            font-size: 0.8rem;
         }
         
         /* Weeks */
@@ -348,23 +352,6 @@
             text-decoration: none;
         }
         
-        /* Theme toggle */
-        .theme-toggle {
-            position: fixed;
-            top: 15px;
-            right: 15px;
-            background: rgba(255, 255, 255, 0.2);
-            border: none;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            z-index: 100;
-        }
-        
         /* Progress Info */
         .progress-info {
             text-align: center;
@@ -394,6 +381,10 @@
             
             .progress-grid {
                 gap: 10px;
+            }
+            
+            .progress-day {
+                font-size: 0.8rem;
             }
         }
         
@@ -426,8 +417,6 @@
             <path d="M0,0V5.63C149.93,59,314.09,71.32,475.83,42.57c43-7.64,84.23-20.12,127.61-26.46,59-8.63,112.48,12.24,165.56,35.4C827.93,77.22,886,95.24,951.2,90c86.53-7,172.46-45.71,248.8-84.81V0Z" class="shape-fill"></path>
         </svg>
     </div>
-    
-    <button class="theme-toggle" id="themeToggle">🌙</button>
     
     <header>
         <div class="logo">
@@ -478,7 +467,6 @@
         
         // UI State
         const uiState = {
-            darkMode: localStorage.getItem('darkMode') === 'true',
             username: '',
             today: new Date(),
             startDate: null,
@@ -490,18 +478,12 @@
             return date.toISOString().split('T')[0];
         }
         
-        // Apply theme on load
-        function applyTheme() {
-            if (uiState.darkMode) {
-                document.body.style.background = 'linear-gradient(135deg, #0a2c5c, #051a38)';
-                document.getElementById('themeToggle').textContent = '☀️';
-            } else {
-                document.body.style.background = 'linear-gradient(135deg, var(--primary), var(--dark))';
-                document.getElementById('themeToggle').textContent = '🌙';
-            }
+        // Get Sunday of the week for a given date
+        function getStartOfWeek(date) {
+            const day = date.getDay();
+            const diff = date.getDate() - day;
+            return new Date(date.setDate(diff));
         }
-        
-        applyTheme();
         
         // Open or create IndexedDB
         function openDB() {
@@ -683,7 +665,7 @@
             });
         }
         
-        // Create progress chart
+        // Create progress chart with proper week alignment
         async function createProgressChart() {
             const container = document.getElementById('progressChart');
             const infoContainer = document.getElementById('progressInfo');
@@ -691,7 +673,7 @@
             infoContainer.innerHTML = '';
             
             if (!uiState.startDate) {
-                infoContainer.textContent = "Start tracking by completing your first workout!";
+                infoContainer.textContent = "Complete your first workout to start tracking progress!";
                 return;
             }
             
@@ -707,25 +689,13 @@
             // Update progress info
             infoContainer.textContent = `Day ${currentDay} of 90 (Started ${uiState.startDate})`;
             
-            // Create completion map
-            const completionMap = {};
-            for (let i = 0; i < 90; i++) {
-                const date = new Date(startDate);
-                date.setDate(startDate.getDate() + i);
-                const dateStr = formatDate(date);
-                const workout = workoutMap.get(dateStr);
-                
-                if (workout) {
-                    completionMap[dateStr] = {
-                        completed: workout.completed,
-                        synced: workout.synced
-                    };
-                }
-            }
-            
-            // Create the chart
-            const weeks = Math.ceil(90 / 7);
+            // Create the chart with proper week alignment
+            const weeks = 13; // 90 days = 13 weeks (90/7≈12.86)
             let dayCount = 0;
+            
+            // Find the Sunday before the start date
+            const startDateObj = new Date(startDate);
+            const startOfWeek = getStartOfWeek(startDateObj);
             
             for (let week = 0; week < weeks; week++) {
                 const weekLabel = document.createElement('div');
@@ -736,30 +706,34 @@
                 const grid = document.createElement('div');
                 grid.className = 'progress-grid';
                 
-                for (let day = 0; day < 7; day++) {
-                    if (dayCount >= 90) break;
-                    
-                    const dayDate = new Date(startDate);
-                    dayDate.setDate(startDate.getDate() + dayCount);
+                for (let dayOfWeek = 0; dayOfWeek < 7; dayOfWeek++) {
+                    const dayDate = new Date(startOfWeek);
+                    dayDate.setDate(startOfWeek.getDate() + (week * 7) + dayOfWeek);
                     const dayStr = formatDate(dayDate);
                     
                     const dayEl = document.createElement('div');
                     dayEl.className = 'progress-day';
-                    dayEl.textContent = dayCount + 1;
-                    dayEl.title = `Day ${dayCount + 1} - ${dayStr}`;
                     
-                    const status = completionMap[dayStr];
-                    if (status) {
-                        dayEl.classList.add(status.synced ? 'completed' : 'unsynced');
-                    }
-                    
-                    // Mark today
-                    if (dayStr === formatDate(today)) {
-                        dayEl.classList.add('today');
+                    // Check if this day is within the 90-day program
+                    const programDay = dayCount + 1;
+                    if (dayDate >= startDate && dayCount < 90) {
+                        dayEl.innerHTML = `<div class="day-number">${programDay}</div>`;
+                        dayEl.title = `Day ${programDay} - ${dayStr}`;
+                        
+                        const status = workoutMap.get(dayStr);
+                        if (status) {
+                            dayEl.classList.add(status.synced ? 'completed' : 'unsynced');
+                        }
+                        
+                        // Mark today
+                        if (dayStr === formatDate(today)) {
+                            dayEl.classList.add('today');
+                        }
+                        
+                        dayCount++;
                     }
                     
                     grid.appendChild(dayEl);
-                    dayCount++;
                 }
                 
                 container.appendChild(grid);
@@ -784,7 +758,7 @@
             try {
                 // Set start date if not already set
                 if (!uiState.startDate) {
-                    uiState.startDate = formatDate(uiState.today);
+                    uiState.startDate = todayStr;
                     await saveSetting('startDate', uiState.startDate);
                 }
                 
@@ -814,13 +788,6 @@
             btn.disabled = true;
             btn.textContent = synced ? 'Completed!' : 'Completed (Offline)';
             btn.style.background = 'var(--success)';
-        }
-        
-        // Theme toggle functionality
-        function toggleTheme() {
-            uiState.darkMode = !uiState.darkMode;
-            localStorage.setItem('darkMode', uiState.darkMode);
-            applyTheme();
         }
         
         // ====================
@@ -871,9 +838,8 @@
         document.addEventListener('DOMContentLoaded', () => {
             initApp();
             
-            // Add event listeners
+            // Add event listener
             document.getElementById('completeBtn').addEventListener('click', handleCompleteWorkout);
-            document.getElementById('themeToggle').addEventListener('click', toggleTheme);
         });
     </script>
 </body>

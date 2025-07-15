@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Track your daily workouts with this easy-to-use tracker">
+    <meta name="theme-color" content="#1a6dcc">
+    <title>SwimFit Tracker</title>
+    <link rel="manifest" href="manifest.json">
+    <style>
+        /* CSS Reset */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        /* Variables */
+        :root {
+            --primary: #1a6dcc;
+            --primary-light: #4a9aff;
+            --secondary: #ff9800;
+            --dark: #0a2c5c;
+            --light: #e6f2ff;
+            --success: #4caf50;
+            --warning: #ffc107;
+            --danger: #f44336;
+            --white: #ffffff;
+            --gray: #f5f5f5;
+            --text: #333333;
+        }
+        
+        body {
+            background: linear-gradient(135deg, var(--primary), var(--dark));
+            color: var(--text);
+            min-height: 100vh;
+            padding: 20px;
+            padding-bottom: 80px;
+            position: relative;
+            overflow-x: hidden;
+        }
+        
+        /* Water effect at bottom */
+        body::after {
+            content: "";
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 20%;
+            background: linear-gradient(to top, rgba(26, 109, 204, 0.7), transparent);
+            pointer-events: none;
+            z-index: -1;
+        }
+        
+        /* Header */
+        header {
+            text-align: center;
+            padding: 20px 0;
+            margin-bottom: 20px;
+            color: var(--white);
+            position: relative;
+        }
+        
+        .logo {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .logo-icon {
+            width: 50px;
+            height: 50px;
+            background: var(--white);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-right: 10px;
+            color: var(--primary);
+            font-size: 24px;
+            font-weight: bold;
+        }
+        
+        h1 {
+            font-size: 2rem;
+            margin-bottom: 5px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        .username {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        
+        .date-display {
+            font-size: 0.9rem;
+            margin-top: 5px;
+            opacity: 0.8;
+        }
+        
+        /* Main Content */
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .card {
+            background: var(--white);
+            border-radius: 15px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+            padding: 25px;
+            margin-bottom: 25px;
+            transition: all 0.3s ease;
+        }
+        
+        .card-title {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            color: var(--dark);
+            display: flex;
+            align-items: center;
+        }
+        
+        .card-title i {
+            margin-right: 10px;
+            color: var(--primary);
+        }
+        
+        /* Exercises List */
+        .exercise-list {
+            list-style: none;
+        }
+        
+        .exercise-item {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            margin-bottom: 12px;
+            background: var(--gray);
+            border-radius: 10px;
+            border-left: 4px solid var(--primary);
+            transition: all 0.3s ease;
+        }
+        
+        .exercise-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        
+        .exercise-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--primary-light);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-right: 15px;
+            color: var(--white);
+            flex-shrink: 0;
+        }
+        
+        .exercise-info {
+            flex-grow: 1;
+        }
+        
+        .exercise-name {
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+        
+        .exercise-reps {
+            font-size: 0.9rem;
+            color: #666;
+        }
+        
+        /* Complete Button */
+        .complete-btn {
+            display: block;
+            width: 100%;
+            padding: 18px;
+            background: var(--secondary);
+            color: var(--white);
+            border: none;
+            border-radius: 10px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            margin-top: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .complete-btn::after {
+            content: "";
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: rgba(255,255,255,0.2);
+            transform: rotate(30deg);
+            transition: all 0.6s ease;
+        }
+        
+        .complete-btn:hover {
+            background: #e68a00;
+            transform: translateY(-3px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.25);
+        }
+        
+        .complete-btn:hover::after {
+            transform: rotate(30deg) translate(20%, 20%);
+        }
+        
+        .complete-btn:disabled {
+            background: #cccccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .complete-btn:disabled::after {
+            display: none;
+        }
+        
+        /* Progress Section */
+        .progress-container {
+            text-align: center;
+        }
+        
+        .progress-title {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .progress-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 8px;
+            margin-top: 15px;
+        }
+        
+        .progress-day {
+            aspect-ratio: 1;
+            background: #e0e0e0;
+            border-radius: 4px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 0.7rem;
+            transition: all 0.3s ease;
+        }
+        
+        .progress-day.completed {
+            background: var(--success);
+            color: white;
+            transform: scale(1.05);
+        }
+        
+        .progress-day.today {
+            box-shadow: 0 0 0 2px var(--secondary);
+        }
+        
+        /* Weeks */
+        .week-label {
+            font-size: 0.8rem;
+            color: #666;
+            margin-top: 20px;
+            margin-bottom: 5px;
+            text-align: left;
+        }
+        
+        /* Congrats Message */
+        .congrats-message {
+            background: var(--success);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            margin-top: 20px;
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .congrats-message h3 {
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+        }
+        
+        /* Waves Animation */
+        .wave {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            overflow: hidden;
+            line-height: 0;
+            z-index: -1;
+        }
+        
+        .wave svg {
+            position: relative;
+            display: block;
+            width: calc(100% + 1.3px);
+            height: 70px;
+        }
+        
+        .wave .shape-fill {
+            fill: rgba(255, 255, 255, 0.15);
+        }
+        
+        /* Footer */
+        footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: rgba(10, 44, 92, 0.9);
+            color: var(--white);
+            text-align: center;
+            padding: 15px;
+            font-size: 0.8rem;
+            z-index: 10;
+        }
+        
+        footer a {
+            color: var(--secondary);
+            text-decoration: none;
+        }
+        
+        /* Responsive */
+        @media (min-width: 768px) {
+            h1 {
+                font-size: 2.5rem;
+            }
+            
+            .username {
+                font-size: 1.4rem;
+            }
+            
+            .exercise-item {
+                padding: 18px;
+            }
+            
+            .complete-btn {
+                font-size: 1.3rem;
+                padding: 20px;
+            }
+            
+            .progress-grid {
+                gap: 10px;
+            }
+        }
+        
+        /* Animation for water splash when button clicked */
+        @keyframes splash {
+            0% {
+                transform: scale(0);
+                opacity: 1;
+            }
+            100% {
+                transform: scale(2);
+                opacity: 0;
+            }
+        }
+        
+        .splash {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.7);
+            border-radius: 50%;
+            pointer-events: none;
+            animation: splash 0.6s ease-out;
+        }
+    </style>
+</head>
+<body>
+    <div class="wave">
+        <svg data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 120" preserveAspectRatio="none">
+            <path d="M0,0V46.29c47.79,22.2,103.59,32.17,158,28,70.36-5.37,136.33-33.31,206.8-37.5C438.64,32.43,512.34,53.67,583,72.05c69.27,18,138.3,24.88,209.4,13.08,36.15-6,69.85-17.84,104.45-29.34C989.49,25,1113-14.29,1200,52.47V0Z" opacity=".25" class="shape-fill"></path>
+            <path d="M0,0V15.81C13,36.92,27.64,56.86,47.69,72.05,99.41,111.27,165,111,224.58,91.58c31.15-10.15,60.09-26.07,89.67-39.8,40.92-19,84.73-46,130.83-49.67,36.26-2.85,70.9,9.42,98.6,31.56,31.77,25.39,62.32,62,103.63,73,40.44,10.79,81.35-6.69,119.13-24.28s75.16-39,116.92-43.05c59.73-5.85,113.28,22.88,168.9,38.84,30.2,8.66,59,6.17,87.09-7.5,22.43-10.89,48-26.93,60.65-49.24V0Z" opacity=".5" class="shape-fill"></path>
+            <path d="M0,0V5.63C149.93,59,314.09,71.32,475.83,42.57c43-7.64,84.23-20.12,127.61-26.46,59-8.63,112.48,12.24,165.56,35.4C827.93,77.22,886,95.24,951.2,90c86.53-7,172.46-45.71,248.8-84.81V0Z" class="shape-fill"></path>
+        </svg>
+    </div>
+    
+    <header>
+        <div class="logo">
+            <div class="logo-icon">🏊</div>
+            <h1>SwimFit Tracker</h1>
+        </div>
+        <div class="username" id="username">Welcome, Athlete!</div>
+        <div class="date-display" id="currentDate"></div>
+    </header>
+    
+    <div class="container">
+        <div class="card">
+            <h2 class="card-title"><i>🏅</i> Today's Workout</h2>
+            <ul class="exercise-list" id="exerciseList">
+                <!-- Exercises will be populated by JS -->
+            </ul>
+            <button class="complete-btn" id="completeBtn">Complete Today's Workout</button>
+            <div class="congrats-message" id="congratsMessage">
+                <h3>Great Job! 🎉</h3>
+                <p>You've completed today's workout. Keep up the great work!</p>
+            </div>
+        </div>
+        
+        <div class="card progress-container">
+            <h2 class="card-title"><i>📈</i> 90-Day Progress</h2>
+            <div id="progressChart">
+                <!-- Progress chart will be populated by JS -->
+            </div>
+        </div>
+    </div>
+    
+    <footer>
+        <p>&copy; 2023 SwimFit Tracker | <a href="https://example.com/coaching" target="_blank">Get Personal Coaching</a></p>
+    </footer>
+    
+    <script>
+        // Get username from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const username = urlParams.get('username') || 'Athlete';
+        document.getElementById('username').textContent = `Welcome, ${username}!`;
+        
+        // Set current date
+        const today = new Date();
+        document.getElementById('currentDate').textContent = today.toLocaleDateString('en-US', { 
+            weekday: 'long', 
+            year: 'numeric', 
+            month: 'long', 
+            day: 'numeric' 
+        });
+        
+        // Today's workout data
+        const workout = {
+            id: 1,
+            exercises: [
+                { name: "Push-ups", reps: 10 },
+                { name: "Dips", reps: 10 },
+                { name: "Squats", reps: 10 },
+                { name: "Lunges", reps: 10 },
+                { name: "Horse Stand", reps: "1 min" },
+                { name: "Knee Tucks", reps: 10 },
+                { name: "Mountain Climbers", reps: 10 },
+                { name: "Plank", reps: "30 sec" }
+            ]
+        };
+        
+        // Populate exercises list
+        const exerciseList = document.getElementById('exerciseList');
+        workout.exercises.forEach(ex => {
+            const li = document.createElement('li');
+            li.className = 'exercise-item';
+            li.innerHTML = `
+                <div class="exercise-icon">💪</div>
+                <div class="exercise-info">
+                    <div class="exercise-name">${ex.name}</div>
+                    <div class="exercise-reps">${ex.reps}</div>
+                </div>
+            `;
+            exerciseList.appendChild(li);
+        });
+        
+        // Create progress chart
+        function createProgressChart() {
+            const container = document.getElementById('progressChart');
+            const weeks = Math.ceil(90 / 7);
+            let todayIndex = 0;
+            let weekStart = 0;
+            
+            for (let week = 0; week < weeks; week++) {
+                const weekLabel = document.createElement('div');
+                weekLabel.className = 'week-label';
+                weekLabel.textContent = `Week ${week + 1}`;
+                container.appendChild(weekLabel);
+                
+                const grid = document.createElement('div');
+                grid.className = 'progress-grid';
+                
+                for (let day = 0; day < 7; day++) {
+                    const dayIndex = week * 7 + day;
+                    if (dayIndex >= 90) break;
+                    
+                    const dayEl = document.createElement('div');
+                    dayEl.className = 'progress-day';
+                    dayEl.textContent = dayIndex + 1;
+                    
+                    // Mark today
+                    if (dayIndex === 0) {
+                        dayEl.classList.add('today');
+                        todayIndex = dayIndex;
+                    }
+                    
+                    // Random completed days for demo
+                    if (dayIndex < todayIndex && Math.random() > 0.3) {
+                        dayEl.classList.add('completed');
+                    }
+                    
+                    grid.appendChild(dayEl);
+                }
+                
+                container.appendChild(grid);
+            }
+        }
+        
+        // Complete button functionality
+        document.getElementById('completeBtn').addEventListener('click', function() {
+            const btn = this;
+            btn.disabled = true;
+            btn.textContent = 'Completing...';
+            
+            // Create splash effect
+            createSplashEffect(btn);
+            
+            // Simulate API calls
+            setTimeout(() => {
+                // Update Supabase
+                updateSupabase();
+                
+                // Update Google Sheet
+                updateGoogleSheet();
+                
+                // Update UI
+                document.querySelector('.progress-day.today').classList.add('completed');
+                document.getElementById('congratsMessage').style.display = 'block';
+                
+                btn.textContent = 'Completed!';
+                btn.style.background = 'var(--success)';
+                
+                // Hide congrats message after 5 seconds
+                setTimeout(() => {
+                    document.getElementById('congratsMessage').style.display = 'none';
+                }, 5000);
+            }, 1500);
+        });
+        
+        // Create water splash effect
+        function createSplashEffect(element) {
+            const rect = element.getBoundingClientRect();
+            const splash = document.createElement('div');
+            splash.className = 'splash';
+            splash.style.width = '100px';
+            splash.style.height = '100px';
+            splash.style.left = (rect.left + rect.width/2 - 50) + 'px';
+            splash.style.top = (rect.top + rect.height/2 - 50) + 'px';
+            document.body.appendChild(splash);
+            
+            setTimeout(() => {
+                splash.remove();
+            }, 600);
+        }
+        
+        // Simulated API functions
+        function updateSupabase() {
+            console.log("Updating Supabase...");
+            // In a real app:
+            // fetch('https://your-supabase-url/rest/v1/workouts', {
+            //     method: 'POST',
+            //     headers: {
+            //         'apikey': 'YOUR_SUPABASE_KEY',
+            //         'Content-Type': 'application/json'
+            //     },
+            //     body: JSON.stringify({
+            //         username: username,
+            //         date: today.toISOString().split('T')[0],
+            //         completed: true
+            //     })
+            // })
+        }
+        
+        function updateGoogleSheet() {
+            console.log("Updating Google Sheet...");
+            // In a real app:
+            // fetch('https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec', {
+            //     method: 'POST',
+            //     body: JSON.stringify({
+            //         username: username,
+            //         date: today.toISOString().split('T')[0],
+            //         completed: 1
+            //     })
+            // })
+        }
+        
+        // Initialize the app
+        createProgressChart();
+        
+        // Service Worker Registration
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js')
+                    .then(registration => {
+                        console.log('Service Worker registered: ', registration);
+                    })
+                    .catch(error => {
+                        console.log('Service Worker registration failed: ', error);
+                    });
+            });
+        }
+    </script>
+</body>
+</html>

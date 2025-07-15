@@ -341,6 +341,42 @@
             text-decoration: none;
         }
         
+        /* Offline indicator */
+        .offline-indicator {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: var(--warning);
+            color: var(--dark);
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            display: none;
+            z-index: 100;
+        }
+        
+        /* Sync notification */
+        .sync-notification {
+            position: fixed;
+            bottom: 70px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--success);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 30px;
+            font-size: 0.9rem;
+            display: none;
+            z-index: 100;
+            animation: slideUp 0.5s ease;
+        }
+        
+        @keyframes slideUp {
+            from { bottom: 0; opacity: 0; }
+            to { bottom: 70px; opacity: 1; }
+        }
+        
         /* Responsive */
         @media (min-width: 768px) {
             h1 {
@@ -395,6 +431,9 @@
         </svg>
     </div>
     
+    <div class="offline-indicator" id="offlineIndicator">Offline Mode</div>
+    <div class="sync-notification" id="syncNotification">Syncing data...</div>
+    
     <header>
         <div class="logo">
             <div class="logo-icon">🏊</div>
@@ -430,6 +469,195 @@
     </footer>
     
     <script>
+        // ====================
+        // NEW: Offline Tracking
+        // ====================
+        
+        // Database setup
+        const DB_NAME = 'workoutTrackerDB';
+        const DB_VERSION = 1;
+        const STORE_NAME = 'workouts';
+        let db;
+        
+        // Open or create IndexedDB
+        function openDB() {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open(DB_NAME, DB_VERSION);
+                
+                request.onerror = (event) => {
+                    console.error('Database error:', event.target.error);
+                    reject(event.target.error);
+                };
+                
+                request.onupgradeneeded = (event) => {
+                    db = event.target.result;
+                    
+                    // Create the object store if it doesn't exist
+                    if (!db.objectStoreNames.contains(STORE_NAME)) {
+                        const store = db.createObjectStore(STORE_NAME, { keyPath: 'date' });
+                        store.createIndex('date', 'date', { unique: true });
+                        store.createIndex('completed', 'completed', { unique: false });
+                        store.createIndex('synced', 'synced', { unique: false });
+                    }
+                };
+                
+                request.onsuccess = (event) => {
+                    db = event.target.result;
+                    resolve(db);
+                };
+            });
+        }
+        
+        // Save workout completion to IndexedDB
+        async function saveWorkoutCompletion(date, username) {
+            if (!db) await openDB();
+            
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction([STORE_NAME], 'readwrite');
+                const store = transaction.objectStore(STORE_NAME);
+                
+                const workout = {
+                    date: date,
+                    completed: true,
+                    synced: false,
+                    username: username,
+                    timestamp: new Date().toISOString()
+                };
+                
+                const request = store.put(workout);
+                
+                request.onsuccess = () => {
+                    console.log('Workout saved to IndexedDB:', date);
+                    resolve();
+                };
+                
+                request.onerror = (event) => {
+                    console.error('Error saving workout:', event.target.error);
+                    reject(event.target.error);
+                };
+            });
+        }
+        
+        // Get workout completion status from IndexedDB
+        async function getWorkoutCompletion(date) {
+            if (!db) await openDB();
+            
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction([STORE_NAME], 'readonly');
+                const store = transaction.objectStore(STORE_NAME);
+                const request = store.get(date);
+                
+                request.onsuccess = (event) => {
+                    const workout = event.target.result;
+                    resolve(workout ? workout.completed : false);
+                };
+                
+                request.onerror = (event) => {
+                    console.error('Error getting workout:', event.target.error);
+                    resolve(false);
+                };
+            });
+        }
+        
+        // Get unsynced workouts from IndexedDB
+        async function getUnsyncedWorkouts() {
+            if (!db) await openDB();
+            
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction([STORE_NAME], 'readonly');
+                const store = transaction.objectStore(STORE_NAME);
+                const index = store.index('synced');
+                const request = index.getAll(IDBKeyRange.only(false));
+                
+                request.onsuccess = (event) => {
+                    resolve(event.target.result || []);
+                };
+                
+                request.onerror = (event) => {
+                    console.error('Error getting unsynced workouts:', event.target.error);
+                    resolve([]);
+                };
+            });
+        }
+        
+        // Mark workout as synced in IndexedDB
+        async function markWorkoutSynced(date) {
+            if (!db) await openDB();
+            
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction([STORE_NAME], 'readwrite');
+                const store = transaction.objectStore(STORE_NAME);
+                const getRequest = store.get(date);
+                
+                getRequest.onsuccess = (event) => {
+                    const workout = event.target.result;
+                    if (workout) {
+                        workout.synced = true;
+                        const putRequest = store.put(workout);
+                        
+                        putRequest.onsuccess = () => {
+                            console.log('Workout marked as synced:', date);
+                            resolve();
+                        };
+                        
+                        putRequest.onerror = (event) => {
+                            console.error('Error marking workout as synced:', event.target.error);
+                            reject(event.target.error);
+                        };
+                    } else {
+                        resolve();
+                    }
+                };
+                
+                getRequest.onerror = (event) => {
+                    console.error('Error getting workout for syncing:', event.target.error);
+                    reject(event.target.error);
+                };
+            });
+        }
+        
+        // Sync unsynced workouts with backend
+        async function syncUnsyncedWorkouts() {
+            const unsynced = await getUnsyncedWorkouts();
+            
+            if (unsynced.length === 0) return;
+            
+            // Show sync notification
+            const syncNotification = document.getElementById('syncNotification');
+            syncNotification.textContent = `Syncing ${unsynced.length} workout(s)...`;
+            syncNotification.style.display = 'block';
+            
+            // Simulate sync process
+            for (const workout of unsynced) {
+                try {
+                    // Update Supabase
+                    await updateSupabase(workout.username, workout.date);
+                    
+                    // Update Google Sheet
+                    await updateGoogleSheet(workout.username, workout.date);
+                    
+                    // Mark as synced in IndexedDB
+                    await markWorkoutSynced(workout.date);
+                    
+                    console.log(`Synced workout for ${workout.date}`);
+                } catch (error) {
+                    console.error('Error syncing workout:', error);
+                }
+            }
+            
+            // Update progress chart after sync
+            createProgressChart();
+            
+            // Hide sync notification after delay
+            setTimeout(() => {
+                syncNotification.style.display = 'none';
+            }, 3000);
+        }
+        
+        // ====================
+        // MODIFIED: App Initialization
+        // ====================
+        
         // Get username from URL
         const urlParams = new URLSearchParams(window.location.search);
         const username = urlParams.get('username') || 'Athlete';
@@ -437,6 +665,7 @@
         
         // Set current date
         const today = new Date();
+        const todayStr = today.toISOString().split('T')[0]; // YYYY-MM-DD format
         document.getElementById('currentDate').textContent = today.toLocaleDateString('en-US', { 
             weekday: 'long', 
             year: 'numeric', 
@@ -475,11 +704,24 @@
         });
         
         // Create progress chart
-        function createProgressChart() {
+        async function createProgressChart() {
             const container = document.getElementById('progressChart');
+            container.innerHTML = ''; // Clear existing chart
+            
             const weeks = Math.ceil(90 / 7);
             let todayIndex = 0;
             let weekStart = 0;
+            
+            // Get completion data from IndexedDB
+            const completionData = {};
+            const today = new Date();
+            
+            for (let i = 0; i < 90; i++) {
+                const date = new Date();
+                date.setDate(today.getDate() - 89 + i);
+                const dateStr = date.toISOString().split('T')[0];
+                completionData[dateStr] = await getWorkoutCompletion(dateStr);
+            }
             
             for (let week = 0; week < weeks; week++) {
                 const weekLabel = document.createElement('div');
@@ -494,18 +736,22 @@
                     const dayIndex = week * 7 + day;
                     if (dayIndex >= 90) break;
                     
+                    const dayDate = new Date();
+                    dayDate.setDate(today.getDate() - 89 + dayIndex);
+                    const dayStr = dayDate.toISOString().split('T')[0];
+                    
                     const dayEl = document.createElement('div');
                     dayEl.className = 'progress-day';
                     dayEl.textContent = dayIndex + 1;
                     
                     // Mark today
-                    if (dayIndex === 0) {
+                    if (dayStr === todayStr) {
                         dayEl.classList.add('today');
                         todayIndex = dayIndex;
                     }
                     
-                    // Random completed days for demo
-                    if (dayIndex < todayIndex && Math.random() > 0.3) {
+                    // Mark completed days
+                    if (completionData[dayStr]) {
                         dayEl.classList.add('completed');
                     }
                     
@@ -517,34 +763,37 @@
         }
         
         // Complete button functionality
-        document.getElementById('completeBtn').addEventListener('click', function() {
+        document.getElementById('completeBtn').addEventListener('click', async function() {
             const btn = this;
             btn.disabled = true;
             btn.textContent = 'Completing...';
             
-            // Create splash effect
-            createSplashEffect(btn);
-            
-            // Simulate API calls
-            setTimeout(() => {
-                // Update Supabase
-                updateSupabase();
-                
-                // Update Google Sheet
-                updateGoogleSheet();
+            // Save to IndexedDB
+            try {
+                await saveWorkoutCompletion(todayStr, username);
                 
                 // Update UI
-                document.querySelector('.progress-day.today').classList.add('completed');
+                document.querySelector('.progress-day.today')?.classList.add('completed');
                 document.getElementById('congratsMessage').style.display = 'block';
                 
                 btn.textContent = 'Completed!';
                 btn.style.background = 'var(--success)';
                 
+                // Try to sync if online
+                if (navigator.onLine) {
+                    await syncUnsyncedWorkouts();
+                }
+                
                 // Hide congrats message after 5 seconds
                 setTimeout(() => {
                     document.getElementById('congratsMessage').style.display = 'none';
                 }, 5000);
-            }, 1500);
+            } catch (error) {
+                console.error('Error completing workout:', error);
+                btn.disabled = false;
+                btn.textContent = 'Complete Today\'s Workout';
+                alert('Failed to save workout. Please try again.');
+            }
         });
         
         // Create water splash effect
@@ -564,10 +813,10 @@
         }
         
         // Simulated API functions
-        function updateSupabase() {
-            console.log("Updating Supabase...");
+        async function updateSupabase(username, date) {
+            console.log("Updating Supabase...", { username, date });
             // In a real app:
-            // fetch('https://your-supabase-url/rest/v1/workouts', {
+            // return fetch('https://your-supabase-url/rest/v1/workouts', {
             //     method: 'POST',
             //     headers: {
             //         'apikey': 'YOUR_SUPABASE_KEY',
@@ -575,27 +824,60 @@
             //     },
             //     body: JSON.stringify({
             //         username: username,
-            //         date: today.toISOString().split('T')[0],
+            //         date: date,
             //         completed: true
             //     })
             // })
+            
+            // Simulate API call
+            return new Promise(resolve => setTimeout(resolve, 500));
         }
         
-        function updateGoogleSheet() {
-            console.log("Updating Google Sheet...");
+        async function updateGoogleSheet(username, date) {
+            console.log("Updating Google Sheet...", { username, date });
             // In a real app:
-            // fetch('https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec', {
+            // return fetch('https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec', {
             //     method: 'POST',
             //     body: JSON.stringify({
             //         username: username,
-            //         date: today.toISOString().split('T')[0],
+            //         date: date,
             //         completed: 1
             //     })
             // })
+            
+            // Simulate API call
+            return new Promise(resolve => setTimeout(resolve, 500));
         }
         
         // Initialize the app
-        createProgressChart();
+        async function initApp() {
+            // Initialize database
+            await openDB();
+            
+            // Create progress chart
+            await createProgressChart();
+            
+            // Check if today's workout is already completed
+            const completed = await getWorkoutCompletion(todayStr);
+            if (completed) {
+                const btn = document.getElementById('completeBtn');
+                btn.disabled = true;
+                btn.textContent = 'Completed!';
+                btn.style.background = 'var(--success)';
+                document.querySelector('.progress-day.today')?.classList.add('completed');
+            }
+            
+            // Sync unsynced workouts if online
+            if (navigator.onLine) {
+                await syncUnsyncedWorkouts();
+            }
+        }
+        
+        // Network status detection
+        function updateNetworkStatus() {
+            const offlineIndicator = document.getElementById('offlineIndicator');
+            offlineIndicator.style.display = navigator.onLine ? 'none' : 'block';
+        }
         
         // Service Worker Registration
         if ('serviceWorker' in navigator) {
@@ -609,6 +891,26 @@
                     });
             });
         }
+        
+        // Track when app is installed
+        window.addEventListener('appinstalled', () => {
+            console.log('App installed to home screen');
+            sessionStorage.setItem('appInstalled', 'true');
+        });
+        
+        // Initialize app when DOM is loaded
+        document.addEventListener('DOMContentLoaded', () => {
+            initApp();
+            updateNetworkStatus();
+            
+            // Listen for online/offline events
+            window.addEventListener('online', () => {
+                updateNetworkStatus();
+                syncUnsyncedWorkouts();
+            });
+            
+            window.addEventListener('offline', updateNetworkStatus);
+        });
     </script>
 </body>
 </html>

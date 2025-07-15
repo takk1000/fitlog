@@ -24,12 +24,12 @@
             --dark: #0a2c5c;
             --light: #e6f2ff;
             --success: #4caf50;
+            --success-light: #81c784;
             --warning: #ffc107;
             --danger: #f44336;
             --white: #ffffff;
             --gray: #f5f5f5;
             --text: #333333;
-            --offline: #ff9800;
         }
         
         body {
@@ -40,7 +40,6 @@
             padding-bottom: 80px;
             position: relative;
             overflow-x: hidden;
-            transition: background 0.5s ease;
         }
         
         /* Water effect at bottom */
@@ -268,24 +267,13 @@
         }
         
         .progress-day.unsynced {
-            background: var(--offline);
+            background: var(--success-light);
             color: white;
-            position: relative;
-            animation: pulse 2s infinite;
             transform: scale(1.05);
         }
         
         .progress-day.today {
             box-shadow: 0 0 0 2px var(--secondary);
-        }
-        
-        @keyframes pulse {
-            0% {
-                box-shadow: 0 0 0 0 rgba(255, 152, 0, 0.7);
-            }
-            70% {
-                box-shadow: 0 0 0 10px rgba(255, 152, 0, 0);
-            }
         }
         
         /* Weeks */
@@ -377,6 +365,14 @@
             z-index: 100;
         }
         
+        /* Progress Info */
+        .progress-info {
+            text-align: center;
+            margin-top: 15px;
+            font-size: 0.9rem;
+            color: #666;
+        }
+        
         /* Responsive */
         @media (min-width: 768px) {
             h1 {
@@ -460,6 +456,7 @@
             <div id="progressChart">
                 <!-- Progress chart will be populated by JS -->
             </div>
+            <div class="progress-info" id="progressInfo"></div>
         </div>
     </div>
     
@@ -474,18 +471,36 @@
         
         // Database setup
         const DB_NAME = 'workoutTrackerDB';
-        const DB_VERSION = 1;
+        const DB_VERSION = 2; // Version bumped for new schema
         const STORE_NAME = 'workouts';
+        const SETTINGS_STORE = 'settings';
         let db;
         
         // UI State
         const uiState = {
             darkMode: localStorage.getItem('darkMode') === 'true',
             username: '',
-            todayStr: ''
+            today: new Date(),
+            startDate: null,
+            daysCompleted: 0
         };
         
+        // Format date as YYYY-MM-DD
+        function formatDate(date) {
+            return date.toISOString().split('T')[0];
+        }
+        
         // Apply theme on load
+        function applyTheme() {
+            if (uiState.darkMode) {
+                document.body.style.background = 'linear-gradient(135deg, #0a2c5c, #051a38)';
+                document.getElementById('themeToggle').textContent = '☀️';
+            } else {
+                document.body.style.background = 'linear-gradient(135deg, var(--primary), var(--dark))';
+                document.getElementById('themeToggle').textContent = '🌙';
+            }
+        }
+        
         applyTheme();
         
         // Open or create IndexedDB
@@ -501,12 +516,17 @@
                 request.onupgradeneeded = (event) => {
                     db = event.target.result;
                     
-                    // Create the object store if it doesn't exist
+                    // Create workouts store
                     if (!db.objectStoreNames.contains(STORE_NAME)) {
                         const store = db.createObjectStore(STORE_NAME, { keyPath: 'date' });
                         store.createIndex('date', 'date', { unique: true });
                         store.createIndex('completed', 'completed', { unique: false });
                         store.createIndex('synced', 'synced', { unique: false });
+                    }
+                    
+                    // Create settings store
+                    if (!db.objectStoreNames.contains(SETTINGS_STORE)) {
+                        db.createObjectStore(SETTINGS_STORE, { keyPath: 'name' });
                     }
                 };
                 
@@ -514,6 +534,39 @@
                     db = event.target.result;
                     resolve(db);
                 };
+            });
+        }
+        
+        // Save setting to IndexedDB
+        async function saveSetting(name, value) {
+            if (!db) await openDB();
+            
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction([SETTINGS_STORE], 'readwrite');
+                const store = transaction.objectStore(SETTINGS_STORE);
+                
+                const setting = { name, value };
+                const request = store.put(setting);
+                
+                request.onsuccess = () => resolve();
+                request.onerror = (event) => reject(event.target.error);
+            });
+        }
+        
+        // Get setting from IndexedDB
+        async function getSetting(name) {
+            if (!db) await openDB();
+            
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction([SETTINGS_STORE], 'readonly');
+                const store = transaction.objectStore(SETTINGS_STORE);
+                const request = store.get(name);
+                
+                request.onsuccess = (event) => {
+                    resolve(event.target.result ? event.target.result.value : null);
+                };
+                
+                request.onerror = (event) => reject(event.target.error);
             });
         }
         
@@ -536,15 +589,8 @@
                 
                 const request = store.put(workout);
                 
-                request.onsuccess = () => {
-                    console.log('Workout saved to IndexedDB:', date);
-                    resolve();
-                };
-                
-                request.onerror = (event) => {
-                    console.error('Error saving workout:', event.target.error);
-                    reject(event.target.error);
-                };
+                request.onsuccess = () => resolve();
+                request.onerror = (event) => reject(event.target.error);
             });
         }
         
@@ -565,10 +611,7 @@
                     });
                 };
                 
-                request.onerror = (event) => {
-                    console.error('Error getting workout:', event.target.error);
-                    resolve({ completed: false, synced: true });
-                };
+                request.onerror = (event) => reject(event.target.error);
             });
         }
         
@@ -581,71 +624,8 @@
                 const store = transaction.objectStore(STORE_NAME);
                 const request = store.getAll();
                 
-                request.onsuccess = (event) => {
-                    resolve(event.target.result || []);
-                };
-                
-                request.onerror = (event) => {
-                    console.error('Error getting workouts:', event.target.error);
-                    resolve([]);
-                };
-            });
-        }
-        
-        // Get unsynced workouts from IndexedDB
-        async function getUnsyncedWorkouts() {
-            if (!db) await openDB();
-            
-            return new Promise((resolve, reject) => {
-                const transaction = db.transaction([STORE_NAME], 'readonly');
-                const store = transaction.objectStore(STORE_NAME);
-                const index = store.index('synced');
-                const request = index.getAll(IDBKeyRange.only(false));
-                
-                request.onsuccess = (event) => {
-                    resolve(event.target.result || []);
-                };
-                
-                request.onerror = (event) => {
-                    console.error('Error getting unsynced workouts:', event.target.error);
-                    resolve([]);
-                };
-            });
-        }
-        
-        // Mark workout as synced in IndexedDB
-        async function markWorkoutSynced(date) {
-            if (!db) await openDB();
-            
-            return new Promise((resolve, reject) => {
-                const transaction = db.transaction([STORE_NAME], 'readwrite');
-                const store = transaction.objectStore(STORE_NAME);
-                const getRequest = store.get(date);
-                
-                getRequest.onsuccess = (event) => {
-                    const workout = event.target.result;
-                    if (workout) {
-                        workout.synced = true;
-                        const putRequest = store.put(workout);
-                        
-                        putRequest.onsuccess = () => {
-                            console.log('Workout marked as synced:', date);
-                            resolve();
-                        };
-                        
-                        putRequest.onerror = (event) => {
-                            console.error('Error marking workout as synced:', event.target.error);
-                            reject(event.target.error);
-                        };
-                    } else {
-                        resolve();
-                    }
-                };
-                
-                getRequest.onerror = (event) => {
-                    console.error('Error getting workout for syncing:', event.target.error);
-                    reject(event.target.error);
-                };
+                request.onsuccess = (event) => resolve(event.target.result || []);
+                request.onerror = (event) => reject(event.target.error);
             });
         }
         
@@ -661,14 +641,13 @@
         
         // Set current date
         function setCurrentDate() {
-            const today = new Date();
-            uiState.todayStr = today.toISOString().split('T')[0]; // YYYY-MM-DD format
-            document.getElementById('currentDate').textContent = today.toLocaleDateString('en-US', { 
-                weekday: 'long', 
-                year: 'numeric', 
-                month: 'long', 
-                day: 'numeric' 
-            });
+            document.getElementById('currentDate').textContent = 
+                uiState.today.toLocaleDateString('en-US', { 
+                    weekday: 'long', 
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric' 
+                });
         }
         
         // Populate exercises list
@@ -688,6 +667,8 @@
             };
             
             const exerciseList = document.getElementById('exerciseList');
+            exerciseList.innerHTML = '';
+            
             workout.exercises.forEach(ex => {
                 const li = document.createElement('li');
                 li.className = 'exercise-item';
@@ -705,21 +686,47 @@
         // Create progress chart
         async function createProgressChart() {
             const container = document.getElementById('progressChart');
+            const infoContainer = document.getElementById('progressInfo');
             container.innerHTML = '';
+            infoContainer.innerHTML = '';
             
-            const weeks = Math.ceil(90 / 7);
+            if (!uiState.startDate) {
+                infoContainer.textContent = "Start tracking by completing your first workout!";
+                return;
+            }
+            
             const workouts = await getAllWorkouts();
+            const workoutMap = new Map(workouts.map(w => [w.date, w]));
+            
+            // Calculate days in the program
+            const today = new Date(uiState.today);
+            const startDate = new Date(uiState.startDate);
+            const daysSinceStart = Math.floor((today - startDate) / (1000 * 60 * 60 * 24));
+            const currentDay = Math.min(daysSinceStart + 1, 90);
+            
+            // Update progress info
+            infoContainer.textContent = `Day ${currentDay} of 90 (Started ${uiState.startDate})`;
             
             // Create completion map
             const completionMap = {};
-            workouts.forEach(workout => {
-                completionMap[workout.date] = {
-                    completed: workout.completed,
-                    synced: workout.synced
-                };
-            });
+            for (let i = 0; i < 90; i++) {
+                const date = new Date(startDate);
+                date.setDate(startDate.getDate() + i);
+                const dateStr = formatDate(date);
+                const workout = workoutMap.get(dateStr);
+                
+                if (workout) {
+                    completionMap[dateStr] = {
+                        completed: workout.completed,
+                        synced: workout.synced
+                    };
+                }
+            }
             
             // Create the chart
+            const weeks = Math.ceil(90 / 7);
+            let dayCount = 0;
+            
             for (let week = 0; week < weeks; week++) {
                 const weekLabel = document.createElement('div');
                 weekLabel.className = 'week-label';
@@ -730,28 +737,29 @@
                 grid.className = 'progress-grid';
                 
                 for (let day = 0; day < 7; day++) {
-                    const dayIndex = week * 7 + day;
-                    if (dayIndex >= 90) break;
+                    if (dayCount >= 90) break;
                     
-                    const dayDate = new Date();
-                    dayDate.setDate(dayDate.getDate() - 89 + dayIndex);
-                    const dayStr = dayDate.toISOString().split('T')[0];
-                    
-                    const status = completionMap[dayStr] || { completed: false, synced: true };
+                    const dayDate = new Date(startDate);
+                    dayDate.setDate(startDate.getDate() + dayCount);
+                    const dayStr = formatDate(dayDate);
                     
                     const dayEl = document.createElement('div');
                     dayEl.className = 'progress-day';
-                    dayEl.textContent = dayIndex + 1;
+                    dayEl.textContent = dayCount + 1;
+                    dayEl.title = `Day ${dayCount + 1} - ${dayStr}`;
                     
-                    if (status.completed) {
+                    const status = completionMap[dayStr];
+                    if (status) {
                         dayEl.classList.add(status.synced ? 'completed' : 'unsynced');
                     }
                     
-                    if (dayStr === uiState.todayStr) {
+                    // Mark today
+                    if (dayStr === formatDate(today)) {
                         dayEl.classList.add('today');
                     }
                     
                     grid.appendChild(dayEl);
+                    dayCount++;
                 }
                 
                 container.appendChild(grid);
@@ -764,16 +772,24 @@
             btn.disabled = true;
             btn.textContent = 'Completing...';
             
+            const todayStr = formatDate(uiState.today);
+            
             // Check if already completed
-            const completedStatus = await getWorkoutCompletion(uiState.todayStr);
+            const completedStatus = await getWorkoutCompletion(todayStr);
             if (completedStatus.completed) {
                 updateCompleteButtonState(completedStatus.synced);
                 return;
             }
             
-            // Save to IndexedDB
             try {
-                await saveWorkoutCompletion(uiState.todayStr, uiState.username);
+                // Set start date if not already set
+                if (!uiState.startDate) {
+                    uiState.startDate = formatDate(uiState.today);
+                    await saveSetting('startDate', uiState.startDate);
+                }
+                
+                // Save workout
+                await saveWorkoutCompletion(todayStr, uiState.username);
                 
                 // Update UI
                 await createProgressChart();
@@ -796,21 +812,11 @@
         function updateCompleteButtonState(synced) {
             const btn = document.getElementById('completeBtn');
             btn.disabled = true;
-            btn.textContent = synced ? 'Completed!' : 'Completed';
+            btn.textContent = synced ? 'Completed!' : 'Completed (Offline)';
             btn.style.background = 'var(--success)';
         }
         
         // Theme toggle functionality
-        function applyTheme() {
-            if (uiState.darkMode) {
-                document.body.style.background = 'linear-gradient(135deg, #0a2c5c, #051a38)';
-                document.getElementById('themeToggle').textContent = '☀️';
-            } else {
-                document.body.style.background = 'linear-gradient(135deg, var(--primary), var(--dark))';
-                document.getElementById('themeToggle').textContent = '🌙';
-            }
-        }
-        
         function toggleTheme() {
             uiState.darkMode = !uiState.darkMode;
             localStorage.setItem('darkMode', uiState.darkMode);
@@ -818,104 +824,34 @@
         }
         
         // ====================
-        // Network Sync Functions
-        // ====================
-        /*
-        // Sync unsynced workouts with backend services
-        async function syncUnsyncedWorkouts() {
-            const unsynced = await getUnsyncedWorkouts();
-            
-            if (unsynced.length === 0) return;
-            
-            console.log(`Syncing ${unsynced.length} workout(s)...`);
-            
-            for (const workout of unsynced) {
-                try {
-                    // Update Supabase
-                    await updateSupabase(workout.username, workout.date);
-                    
-                    // Update Google Sheet
-                    await updateGoogleSheet(workout.username, workout.date);
-                    
-                    // Mark as synced in IndexedDB
-                    await markWorkoutSynced(workout.date);
-                    
-                    console.log(`Synced workout for ${workout.date}`);
-                } catch (error) {
-                    console.error('Error syncing workout:', error);
-                }
-            }
-            
-            // Update UI after sync
-            await createProgressChart();
-        }
-        
-        // Simulated API functions
-        async function updateSupabase(username, date) {
-            console.log("Updating Supabase...", { username, date });
-            // In a real app:
-            // return fetch('https://your-supabase-url/rest/v1/workouts', {
-            //     method: 'POST',
-            //     headers: {
-            //         'apikey': 'YOUR_SUPABASE_KEY',
-            //         'Content-Type': 'application/json'
-            //     },
-            //     body: JSON.stringify({
-            //         username: username,
-            //         date: date,
-            //         completed: true
-            //     })
-            // })
-            
-            // Simulate API call
-            return new Promise(resolve => setTimeout(resolve, 500));
-        }
-        
-        async function updateGoogleSheet(username, date) {
-            console.log("Updating Google Sheet...", { username, date });
-            // In a real app:
-            // return fetch('https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec', {
-            //     method: 'POST',
-            //     body: JSON.stringify({
-            //         username: username,
-            //         date: date,
-            //         completed: 1
-            //     })
-            // })
-            
-            // Simulate API call
-            return new Promise(resolve => setTimeout(resolve, 500));
-        }
-        */
-        
-        // ====================
         // App Initialization
         // ====================
         async function initApp() {
-            // Initialize database
-            await openDB();
-            
-            // Set up UI
-            uiState.username = getUsername();
-            document.getElementById('username').textContent = `Welcome, ${uiState.username}!`;
-            setCurrentDate();
-            populateExercises();
-            
-            // Create progress chart
-            await createProgressChart();
-            
-            // Check if today's workout is already completed
-            const completedStatus = await getWorkoutCompletion(uiState.todayStr);
-            if (completedStatus.completed) {
-                updateCompleteButtonState(completedStatus.synced);
+            try {
+                // Initialize database
+                await openDB();
+                
+                // Load settings
+                uiState.startDate = await getSetting('startDate');
+                
+                // Set up UI
+                uiState.username = getUsername();
+                document.getElementById('username').textContent = `Welcome, ${uiState.username}!`;
+                setCurrentDate();
+                populateExercises();
+                
+                // Create progress chart
+                await createProgressChart();
+                
+                // Check if today's workout is already completed
+                const todayStr = formatDate(uiState.today);
+                const completedStatus = await getWorkoutCompletion(todayStr);
+                if (completedStatus.completed) {
+                    updateCompleteButtonState(completedStatus.synced);
+                }
+            } catch (error) {
+                console.error('Initialization error:', error);
             }
-            
-            /*
-            // Sync unsynced workouts if online
-            if (navigator.onLine) {
-                await syncUnsyncedWorkouts();
-            }
-            */
         }
         
         // Service Worker Registration

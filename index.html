@@ -915,7 +915,7 @@
             // Calculate total weeks needed
             const totalWeeks = Math.ceil((startDayOfWeek + 90) / 7);
             
-            let dayCounter = 0;
+            let dayCounter = 1;
             for (let week = 0; week < totalWeeks; week++) {
                 const grid = document.createElement('div');
                 grid.className = 'progress-grid';
@@ -932,7 +932,7 @@
                 
                 // Add days for this week
                 for (let dayOfWeek = (week === 0 ? startDayOfWeek : 0); 
-                     dayOfWeek < 7 && dayCounter < 90; 
+                     dayOfWeek < 7 && dayCounter <= 90; 
                      dayOfWeek++) {
                     
                     const day = days[dayCounter];

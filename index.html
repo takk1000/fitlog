@@ -928,38 +928,33 @@
                 const grid = document.createElement('div');
                 grid.className = 'progress-grid';
                 
-                for (let dayOfWeek = 0; dayOfWeek < 7; dayOfWeek++) {
-                    // Stop when we've reached 90 days
-                    if (dayCounter >= 90) {
-                        // Add empty cell
+                // For the first week, add empty cells before the start date
+                if (week === 0) {
+                    for (let i = 0; i < startDayOfWeek; i++) {
                         const dayEl = document.createElement('div');
                         dayEl.className = 'progress-day';
                         dayEl.innerHTML = '<div class="day-number"></div>';
                         grid.appendChild(dayEl);
-                        continue;
                     }
-                    
-                    // Calculate date for this cell
-                    const dayDate = new Date(startDateObj);
-                    dayDate.setDate(startDateObj.getDate() + dayCounter);
-                    
-                    const dayStr = formatDate(dayDate);
+                }
+                
+                // Add days for this week
+                for (let dayOfWeek = (week === 0 ? startDayOfWeek : 0); dayOfWeek < 7 && dayCounter < 90; dayOfWeek++) {
                     const day = days[dayCounter];
-                    
                     const dayEl = document.createElement('div');
                     dayEl.className = 'progress-day';
                     dayEl.innerHTML = `
                         <div class="day-number">${day.dayNumber}</div>
-                        <div class="day-date">${formatShortDate(dayDate)}</div>
+                        <div class="day-date">${formatShortDate(day.date)}</div>
                     `;
                     
-                    const status = workoutMap.get(dayStr);
+                    const status = workoutMap.get(day.dateStr);
                     if (status) {
                         dayEl.classList.add(status.synced ? 'completed' : 'unsynced');
                     }
                     
                     // Mark today
-                    if (dayStr === formatDate(today)) {
+                    if (day.dateStr === formatDate(today)) {
                         dayEl.classList.add('today');
                     }
                     

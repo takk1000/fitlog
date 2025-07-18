@@ -269,6 +269,11 @@
             position: relative;
         }
         
+        .progress-day.empty {
+            background: transparent;
+            box-shadow: none;
+        }
+        
         .progress-day.completed {
             background: var(--success);
             color: white;
@@ -544,7 +549,7 @@
         
         // Database setup
         const DB_NAME = 'workoutTrackerDB';
-        const DB_VERSION = 5; // Version bumped for new schema
+        const DB_VERSION = 5;
         const STORE_NAME = 'workouts';
         const SETTINGS_STORE = 'settings';
         const WORKOUT_CONFIG_STORE = 'workoutConfig';
@@ -557,7 +562,7 @@
             today: new Date(),
             startDate: null,
             daysCompleted: 0,
-            workoutConfig: [] // Will store exercises from Google Sheet
+            workoutConfig: []
         };
         
         // Format date as YYYY-MM-DD
@@ -599,7 +604,6 @@
                 request.onupgradeneeded = (event) => {
                     db = event.target.result;
                     
-                    // Create workouts store
                     if (!db.objectStoreNames.contains(STORE_NAME)) {
                         const store = db.createObjectStore(STORE_NAME, { keyPath: 'date' });
                         store.createIndex('date', 'date', { unique: true });
@@ -607,12 +611,10 @@
                         store.createIndex('synced', 'synced', { unique: false });
                     }
                     
-                    // Create settings store
                     if (!db.objectStoreNames.contains(SETTINGS_STORE)) {
                         db.createObjectStore(SETTINGS_STORE, { keyPath: 'name' });
                     }
                     
-                    // Create workout config store
                     if (!db.objectStoreNames.contains(WORKOUT_CONFIG_STORE)) {
                         db.createObjectStore(WORKOUT_CONFIG_STORE, { keyPath: 'id' });
                     }
@@ -767,7 +769,6 @@
             const url = `https://sheets.googleapis.com/v4/spreadsheets/${GOOGLE_SHEET_ID}/values/${SHEET_RANGE}?key=${GOOGLE_API_KEY}`;
             
             try {
-                // Show sync indicator
                 document.getElementById('syncIndicator').style.display = 'block';
                 
                 const response = await fetch(url);
@@ -778,10 +779,8 @@
                     return null;
                 }
                 
-                // Extract exercises (skip header row if exists)
                 let exercises = data.values;
                 
-                // Check if first row looks like headers
                 if (exercises.length > 1 && 
                     (exercises[0][0].toLowerCase().includes('exercise') || 
                      exercises[0][1].toLowerCase().includes('rep'))) {
@@ -796,7 +795,6 @@
                 console.error('Error fetching workout config:', error);
                 return null;
             } finally {
-                // Hide sync indicator after delay
                 setTimeout(() => {
                     document.getElementById('syncIndicator').style.display = 'none';
                 }, 2000);
@@ -810,10 +808,8 @@
             try {
                 const config = await fetchWorkoutConfigFromGoogle();
                 if (config && config.length > 0) {
-                    // Save to IndexedDB
                     await saveWorkoutConfig(config);
                     
-                    // Update UI with smooth transition
                     const exerciseList = document.getElementById('exerciseList');
                     exerciseList.style.opacity = '0';
                     
@@ -884,13 +880,11 @@
             const workouts = await getAllWorkouts();
             const workoutMap = new Map(workouts.map(w => [w.date, w]));
             
-            // Calculate days in the program
             const today = new Date(uiState.today);
             const startDate = new Date(uiState.startDate);
             const daysSinceStart = Math.floor((today - startDate) / (1000 * 60 * 60 * 24));
-            const currentDay = Math.min(daysSinceStart + 1, 90);
+            const currentDay = Math.min(daysSinceStart + 1, 90); // +1 because Day 1 is the start date
             
-            // Update progress info
             infoContainer.textContent = `Day ${currentDay} of 90 (Started ${uiState.startDate})`;
             
             // Create week headers (Sunday to Saturday)
@@ -904,42 +898,43 @@
             });
             container.appendChild(weekHeader);
             
-            // Create the chart
             const startDateObj = new Date(uiState.startDate);
             const startDayOfWeek = startDateObj.getDay(); // Sunday is 0
             
-            // Create an array for the 90 days
+            // Create days array starting from Day 1
             const days = Array.from({ length: 90 }, (_, i) => {
                 const date = new Date(startDateObj);
                 date.setDate(startDateObj.getDate() + i);
                 return {
-                    dayNumber: i + 1,
+                    dayNumber: i + 1, // Explicitly set Day 1 as first day
                     date: date,
                     dateStr: formatDate(date)
                 };
             });
             
-            // Calculate total weeks needed (including partial first week)
-            const totalWeeks = Math.ceil((90 + startDayOfWeek) / 7);
+            // Calculate total weeks needed
+            const totalWeeks = Math.ceil((startDayOfWeek + 90) / 7);
             
-            // Create week rows
             let dayCounter = 0;
             for (let week = 0; week < totalWeeks; week++) {
                 const grid = document.createElement('div');
                 grid.className = 'progress-grid';
                 
-                // For the first week, add empty cells before the start date
+                // For first week, add empty cells before start date
                 if (week === 0) {
                     for (let i = 0; i < startDayOfWeek; i++) {
                         const dayEl = document.createElement('div');
-                        dayEl.className = 'progress-day';
+                        dayEl.className = 'progress-day empty';
                         dayEl.innerHTML = '<div class="day-number"></div>';
                         grid.appendChild(dayEl);
                     }
                 }
                 
                 // Add days for this week
-                for (let dayOfWeek = (week === 0 ? startDayOfWeek : 0); dayOfWeek < 7 && dayCounter < 90; dayOfWeek++) {
+                for (let dayOfWeek = (week === 0 ? startDayOfWeek : 0); 
+                     dayOfWeek < 7 && dayCounter < 90; 
+                     dayOfWeek++) {
+                    
                     const day = days[dayCounter];
                     const dayEl = document.createElement('div');
                     dayEl.className = 'progress-day';
@@ -953,7 +948,6 @@
                         dayEl.classList.add(status.synced ? 'completed' : 'unsynced');
                     }
                     
-                    // Mark today
                     if (day.dateStr === formatDate(today)) {
                         dayEl.classList.add('today');
                     }
@@ -974,7 +968,6 @@
             
             const todayStr = formatDate(uiState.today);
             
-            // Check if already completed
             const completedStatus = await getWorkoutCompletion(todayStr);
             if (completedStatus.completed) {
                 updateCompleteButtonState(completedStatus.synced);
@@ -982,21 +975,17 @@
             }
             
             try {
-                // Set start date if not already set
                 if (!uiState.startDate) {
-                    uiState.startDate = formatDate(uiState.today);
+                    uiState.startDate = todayStr;
                     await saveSetting('startDate', uiState.startDate);
                 }
                 
-                // Save workout
                 await saveWorkoutCompletion(todayStr, uiState.username);
                 
-                // Update UI
                 await createProgressChart();
                 document.getElementById('congratsMessage').style.display = 'block';
                 updateCompleteButtonState(false);
                 
-                // Hide congrats message after 5 seconds
                 setTimeout(() => {
                     document.getElementById('congratsMessage').style.display = 'none';
                 }, 5000);
@@ -1012,7 +1001,7 @@
         function updateCompleteButtonState(synced) {
             const btn = document.getElementById('completeBtn');
             btn.disabled = true;
-            btn.textContent = synced ? 'Completed!' : 'Completed (Offline)';
+            btn.textContent = synced ? 'Completed!' : 'Completed';
             btn.style.background = 'var(--success)';
         }
         
@@ -1028,34 +1017,25 @@
         // ====================
         async function initApp() {
             try {
-                // Initialize database
                 await openDB();
                 
-                // Load settings
                 uiState.startDate = await getSetting('startDate');
                 
-                // Set up UI
                 uiState.username = getUsername();
                 document.getElementById('username').textContent = `Welcome, ${uiState.username}!`;
                 setCurrentDate();
                 
-                // Load workout config from IndexedDB
                 uiState.workoutConfig = await getWorkoutConfig();
-                
-                // Populate exercises from config
                 populateExercises();
                 
-                // Create progress chart
                 await createProgressChart();
                 
-                // Check if today's workout is already completed
                 const todayStr = formatDate(uiState.today);
                 const completedStatus = await getWorkoutCompletion(todayStr);
                 if (completedStatus.completed) {
                     updateCompleteButtonState(completedStatus.synced);
                 }
                 
-                // Start background sync with Google Sheets
                 setTimeout(syncWorkoutConfigInBackground, 1000);
             } catch (error) {
                 console.error('Initialization error:', error);
@@ -1079,7 +1059,6 @@
         document.addEventListener('DOMContentLoaded', () => {
             initApp();
             
-            // Add event listeners
             document.getElementById('completeBtn').addEventListener('click', handleCompleteWorkout);
             document.getElementById('themeToggle').addEventListener('click', toggleTheme);
         });

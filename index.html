@@ -133,6 +133,7 @@
         /* Exercises List */
         .exercise-list {
             list-style: none;
+            transition: opacity 0.2s ease;
         }
         
         .exercise-item {
@@ -144,6 +145,12 @@
             border-radius: 10px;
             border-left: 4px solid var(--primary);
             transition: all 0.3s ease;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
         
         .exercise-item:hover {
@@ -245,7 +252,7 @@
         .progress-grid {
             display: grid;
             grid-template-columns: repeat(7, 1fr);
-            gap: 8px;
+            gap: 5px;
             margin-top: 15px;
         }
         
@@ -254,6 +261,7 @@
             background: #e0e0e0;
             border-radius: 4px;
             display: flex;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
             font-size: 0.7rem;
@@ -276,8 +284,29 @@
         }
         
         .day-number {
-            font-weight: bold;
             font-size: 0.8rem;
+            font-weight: bold;
+        }
+        
+        .day-date {
+            font-size: 0.6rem;
+            opacity: 0.8;
+            margin-top: 2px;
+        }
+        
+        /* Week headers */
+        .week-header {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 5px;
+            margin-bottom: 5px;
+        }
+        
+        .day-header {
+            text-align: center;
+            font-size: 0.7rem;
+            color: #666;
+            font-weight: bold;
         }
         
         /* Weeks */
@@ -299,11 +328,6 @@
             margin-top: 20px;
             display: none;
             animation: fadeIn 0.5s ease;
-        }
-        
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
         }
         
         .congrats-message h3 {
@@ -352,12 +376,49 @@
             text-decoration: none;
         }
         
+        /* Theme toggle */
+        .theme-toggle {
+            position: fixed;
+            top: 15px;
+            right: 15px;
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 100;
+        }
+        
         /* Progress Info */
         .progress-info {
             text-align: center;
             margin-top: 15px;
             font-size: 0.9rem;
             color: #666;
+        }
+        
+        /* Sync indicator */
+        .sync-indicator {
+            position: fixed;
+            top: 15px;
+            left: 15px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            padding: 5px 15px;
+            font-size: 0.8rem;
+            color: white;
+            display: none;
+            z-index: 100;
+            animation: slideIn 0.3s ease;
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateX(-100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
         }
         
         /* Responsive */
@@ -380,7 +441,7 @@
             }
             
             .progress-grid {
-                gap: 10px;
+                gap: 8px;
             }
             
             .progress-day {
@@ -417,6 +478,9 @@
             <path d="M0,0V5.63C149.93,59,314.09,71.32,475.83,42.57c43-7.64,84.23-20.12,127.61-26.46,59-8.63,112.48,12.24,165.56,35.4C827.93,77.22,886,95.24,951.2,90c86.53-7,172.46-45.71,248.8-84.81V0Z" class="shape-fill"></path>
         </svg>
     </div>
+    
+    <div class="sync-indicator" id="syncIndicator">Syncing with Google Sheets...</div>
+    <button class="theme-toggle" id="themeToggle">🌙</button>
     
     <header>
         <div class="logo">
@@ -455,35 +519,72 @@
     
     <script>
         // ====================
+        // Configuration
+        // ====================
+        // Replace with your Google Sheet ID and API Key
+        const GOOGLE_SHEET_ID = '1YOUR_SHEET_ID_HERE';
+        const GOOGLE_API_KEY = 'YOUR_GOOGLE_API_KEY';
+        const SHEET_RANGE = 'Sheet1!A:B'; // Columns A and B
+
+        // Default exercises to use before Google Sheets sync
+        const DEFAULT_EXERCISES = [
+            { name: "Push-ups", reps: "10" },
+            { name: "Dips", reps: "10" },
+            { name: "Squats", reps: "10" },
+            { name: "Lunges", reps: "10" },
+            { name: "Horse Stand", reps: "1 min" },
+            { name: "Knee Tucks", reps: "10" },
+            { name: "Mountain Climbers", reps: "10" },
+            { name: "Plank", reps: "30 sec" }
+        ];
+
+        // ====================
         // Offline Tracking with IndexedDB
         // ====================
         
         // Database setup
         const DB_NAME = 'workoutTrackerDB';
-        const DB_VERSION = 2; // Version bumped for new schema
+        const DB_VERSION = 5; // Version bumped for new schema
         const STORE_NAME = 'workouts';
         const SETTINGS_STORE = 'settings';
+        const WORKOUT_CONFIG_STORE = 'workoutConfig';
         let db;
         
         // UI State
         const uiState = {
+            darkMode: localStorage.getItem('darkMode') === 'true',
             username: '',
             today: new Date(),
             startDate: null,
-            daysCompleted: 0
+            daysCompleted: 0,
+            workoutConfig: [] // Will store exercises from Google Sheet
         };
         
         // Format date as YYYY-MM-DD
         function formatDate(date) {
-            return date.toISOString().split('T')[0];
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
         }
         
-        // Get Sunday of the week for a given date
-        function getStartOfWeek(date) {
-            const day = date.getDay();
-            const diff = date.getDate() - day;
-            return new Date(date.setDate(diff));
+        // Format date as M/D
+        function formatShortDate(date) {
+            return `${date.getMonth() + 1}/${date.getDate()}`;
         }
+        
+        // Apply theme on load
+        function applyTheme() {
+            if (uiState.darkMode) {
+                document.body.style.background = 'linear-gradient(135deg, #0a2c5c, #051a38)';
+                document.getElementById('themeToggle').textContent = '☀️';
+            } else {
+                document.body.style.background = 'linear-gradient(135deg, var(--primary), var(--dark))';
+                document.getElementById('themeToggle').textContent = '🌙';
+            }
+        }
+        
+        applyTheme();
         
         // Open or create IndexedDB
         function openDB() {
@@ -509,6 +610,11 @@
                     // Create settings store
                     if (!db.objectStoreNames.contains(SETTINGS_STORE)) {
                         db.createObjectStore(SETTINGS_STORE, { keyPath: 'name' });
+                    }
+                    
+                    // Create workout config store
+                    if (!db.objectStoreNames.contains(WORKOUT_CONFIG_STORE)) {
+                        db.createObjectStore(WORKOUT_CONFIG_STORE, { keyPath: 'id' });
                     }
                 };
                 
@@ -546,6 +652,44 @@
                 
                 request.onsuccess = (event) => {
                     resolve(event.target.result ? event.target.result.value : null);
+                };
+                
+                request.onerror = (event) => reject(event.target.error);
+            });
+        }
+        
+        // Save workout config to IndexedDB
+        async function saveWorkoutConfig(config) {
+            if (!db) await openDB();
+            
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction([WORKOUT_CONFIG_STORE], 'readwrite');
+                const store = transaction.objectStore(WORKOUT_CONFIG_STORE);
+                
+                const configData = {
+                    id: 'workoutConfig',
+                    exercises: config,
+                    lastUpdated: new Date().toISOString()
+                };
+                
+                const request = store.put(configData);
+                
+                request.onsuccess = () => resolve();
+                request.onerror = (event) => reject(event.target.error);
+            });
+        }
+        
+        // Get workout config from IndexedDB
+        async function getWorkoutConfig() {
+            if (!db) await openDB();
+            
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction([WORKOUT_CONFIG_STORE], 'readonly');
+                const store = transaction.objectStore(WORKOUT_CONFIG_STORE);
+                const request = store.get('workoutConfig');
+                
+                request.onsuccess = (event) => {
+                    resolve(event.target.result ? event.target.result.exercises : DEFAULT_EXERCISES);
                 };
                 
                 request.onerror = (event) => reject(event.target.error);
@@ -612,6 +756,79 @@
         }
         
         // ====================
+        // Google Sheets Integration
+        // ====================
+        async function fetchWorkoutConfigFromGoogle() {
+            if (!GOOGLE_SHEET_ID || !GOOGLE_API_KEY) {
+                console.error('Google Sheet ID or API Key not configured');
+                return null;
+            }
+            
+            const url = `https://sheets.googleapis.com/v4/spreadsheets/${GOOGLE_SHEET_ID}/values/${SHEET_RANGE}?key=${GOOGLE_API_KEY}`;
+            
+            try {
+                // Show sync indicator
+                document.getElementById('syncIndicator').style.display = 'block';
+                
+                const response = await fetch(url);
+                const data = await response.json();
+                
+                if (!data.values || data.values.length === 0) {
+                    console.error('No data found in Google Sheet');
+                    return null;
+                }
+                
+                // Extract exercises (skip header row if exists)
+                let exercises = data.values;
+                
+                // Check if first row looks like headers
+                if (exercises.length > 1 && 
+                    (exercises[0][0].toLowerCase().includes('exercise') || 
+                     exercises[0][1].toLowerCase().includes('rep'))) {
+                    exercises = exercises.slice(1);
+                }
+                
+                return exercises.map(row => ({
+                    name: row[0] || 'Exercise',
+                    reps: row[1] || '10'
+                }));
+            } catch (error) {
+                console.error('Error fetching workout config:', error);
+                return null;
+            } finally {
+                // Hide sync indicator after delay
+                setTimeout(() => {
+                    document.getElementById('syncIndicator').style.display = 'none';
+                }, 2000);
+            }
+        }
+        
+        // Sync workout config with Google Sheets in background
+        async function syncWorkoutConfigInBackground() {
+            if (!navigator.onLine) return;
+            
+            try {
+                const config = await fetchWorkoutConfigFromGoogle();
+                if (config && config.length > 0) {
+                    // Save to IndexedDB
+                    await saveWorkoutConfig(config);
+                    
+                    // Update UI with smooth transition
+                    const exerciseList = document.getElementById('exerciseList');
+                    exerciseList.style.opacity = '0';
+                    
+                    setTimeout(async () => {
+                        uiState.workoutConfig = config;
+                        populateExercises();
+                        exerciseList.style.opacity = '1';
+                    }, 200);
+                }
+            } catch (error) {
+                console.error('Background sync error:', error);
+            }
+        }
+        
+        // ====================
         // UI Functions
         // ====================
         
@@ -634,29 +851,15 @@
         
         // Populate exercises list
         function populateExercises() {
-            const workout = {
-                id: 1,
-                exercises: [
-                    { name: "Push-ups", reps: 10 },
-                    { name: "Dips", reps: 10 },
-                    { name: "Squats", reps: 10 },
-                    { name: "Lunges", reps: 10 },
-                    { name: "Hula hips", reps: 10 },
-                    { name: "Horse Stand", reps: "1 min" },
-                    { name: "Knee Tucks", reps: 10 },
-                    { name: "Mountain Climbers", reps: 10 },
-                    { name: "Plank", reps: "30 sec" }
-                ]
-            };
-            
             const exerciseList = document.getElementById('exerciseList');
             exerciseList.innerHTML = '';
             
-            workout.exercises.forEach(ex => {
+            uiState.workoutConfig.forEach((ex, index) => {
                 const li = document.createElement('li');
                 li.className = 'exercise-item';
+                li.style.animationDelay = `${index * 0.05}s`;
                 li.innerHTML = `
-                    <div class="exercise-icon">💪</div>
+                    <div class="exercise-icon">${index % 2 === 0 ? '💪' : '🏊'}</div>
                     <div class="exercise-info">
                         <div class="exercise-name">${ex.name}</div>
                         <div class="exercise-reps">${ex.reps}</div>
@@ -666,7 +869,7 @@
             });
         }
         
-        // Create progress chart with proper week alignment
+        // Create progress chart with perfect week alignment
         async function createProgressChart() {
             const container = document.getElementById('progressChart');
             const infoContainer = document.getElementById('progressInfo');
@@ -674,7 +877,7 @@
             infoContainer.innerHTML = '';
             
             if (!uiState.startDate) {
-                infoContainer.textContent = "Complete your first workout to start tracking progress!";
+                infoContainer.textContent = "Start tracking by completing your first workout!";
                 return;
             }
             
@@ -690,51 +893,78 @@
             // Update progress info
             infoContainer.textContent = `Day ${currentDay} of 90 (Started ${uiState.startDate})`;
             
-            // Create the chart with proper week alignment
-            const weeks = 13; // 90 days = 13 weeks (90/7≈12.86)
-            let dayCount = 0;
+            // Create week headers (Sunday to Saturday)
+            const weekHeader = document.createElement('div');
+            weekHeader.className = 'week-header';
+            ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].forEach(day => {
+                const header = document.createElement('div');
+                header.className = 'day-header';
+                header.textContent = day;
+                weekHeader.appendChild(header);
+            });
+            container.appendChild(weekHeader);
             
-            // Find the Sunday before the start date
-            const startDateObj = new Date(startDate);
-            const startOfWeek = getStartOfWeek(startDateObj);
+            // Create the chart
+            const startDateObj = new Date(uiState.startDate);
+            const startDayOfWeek = startDateObj.getDay(); // Sunday is 0
             
-            for (let week = 0; week < weeks; week++) {
-                const weekLabel = document.createElement('div');
-                weekLabel.className = 'week-label';
-                weekLabel.textContent = `Week ${week + 1}`;
-                container.appendChild(weekLabel);
-                
+            // Create an array for the 90 days
+            const days = Array.from({ length: 90 }, (_, i) => {
+                const date = new Date(startDateObj);
+                date.setDate(startDateObj.getDate() + i);
+                return {
+                    dayNumber: i + 1,
+                    date: date,
+                    dateStr: formatDate(date)
+                };
+            });
+            
+            // Calculate total weeks needed (including partial first week)
+            const totalWeeks = Math.ceil((90 + startDayOfWeek) / 7);
+            
+            // Create week rows
+            let dayCounter = 0;
+            for (let week = 0; week < totalWeeks; week++) {
                 const grid = document.createElement('div');
                 grid.className = 'progress-grid';
                 
                 for (let dayOfWeek = 0; dayOfWeek < 7; dayOfWeek++) {
-                    const dayDate = new Date(startOfWeek);
-                    dayDate.setDate(startOfWeek.getDate() + (week * 7) + dayOfWeek);
+                    // Stop when we've reached 90 days
+                    if (dayCounter >= 90) {
+                        // Add empty cell
+                        const dayEl = document.createElement('div');
+                        dayEl.className = 'progress-day';
+                        dayEl.innerHTML = '<div class="day-number"></div>';
+                        grid.appendChild(dayEl);
+                        continue;
+                    }
+                    
+                    // Calculate date for this cell
+                    const dayDate = new Date(startDateObj);
+                    dayDate.setDate(startDateObj.getDate() + dayCounter);
+                    
                     const dayStr = formatDate(dayDate);
+                    const day = days[dayCounter];
                     
                     const dayEl = document.createElement('div');
                     dayEl.className = 'progress-day';
+                    dayEl.innerHTML = `
+                        <div class="day-number">${day.dayNumber}</div>
+                        <div class="day-date">${formatShortDate(dayDate)}</div>
+                    `;
                     
-                    // Check if this day is within the 90-day program
-                    const programDay = dayCount + 1;
-                    if (dayDate >= startDate && dayCount < 90) {
-                        dayEl.innerHTML = `<div class="day-number">${programDay}</div>`;
-                        dayEl.title = `Day ${programDay} - ${dayStr}`;
-                        
-                        const status = workoutMap.get(dayStr);
-                        if (status) {
-                            dayEl.classList.add(status.synced ? 'completed' : 'unsynced');
-                        }
-                        
-                        // Mark today
-                        if (dayStr === formatDate(today)) {
-                            dayEl.classList.add('today');
-                        }
-                        
-                        dayCount++;
+                    const status = workoutMap.get(dayStr);
+                    if (status) {
+                        dayEl.classList.add(status.synced ? 'completed' : 'unsynced');
+                    }
+                    
+                    // Mark today
+                    if (dayStr === formatDate(today)) {
+                        dayEl.classList.add('today');
                     }
                     
                     grid.appendChild(dayEl);
+                    dayCounter++;
                 }
                 
                 container.appendChild(grid);
@@ -759,7 +989,7 @@
             try {
                 // Set start date if not already set
                 if (!uiState.startDate) {
-                    uiState.startDate = todayStr;
+                    uiState.startDate = formatDate(uiState.today);
                     await saveSetting('startDate', uiState.startDate);
                 }
                 
@@ -787,8 +1017,15 @@
         function updateCompleteButtonState(synced) {
             const btn = document.getElementById('completeBtn');
             btn.disabled = true;
-            btn.textContent = synced ? 'Completed!' : 'Completed';
+            btn.textContent = synced ? 'Completed!' : 'Completed (Offline)';
             btn.style.background = 'var(--success)';
+        }
+        
+        // Theme toggle functionality
+        function toggleTheme() {
+            uiState.darkMode = !uiState.darkMode;
+            localStorage.setItem('darkMode', uiState.darkMode);
+            applyTheme();
         }
         
         // ====================
@@ -806,6 +1043,11 @@
                 uiState.username = getUsername();
                 document.getElementById('username').textContent = `Welcome, ${uiState.username}!`;
                 setCurrentDate();
+                
+                // Load workout config from IndexedDB
+                uiState.workoutConfig = await getWorkoutConfig();
+                
+                // Populate exercises from config
                 populateExercises();
                 
                 // Create progress chart
@@ -817,6 +1059,9 @@
                 if (completedStatus.completed) {
                     updateCompleteButtonState(completedStatus.synced);
                 }
+                
+                // Start background sync with Google Sheets
+                setTimeout(syncWorkoutConfigInBackground, 1000);
             } catch (error) {
                 console.error('Initialization error:', error);
             }
@@ -839,8 +1084,9 @@
         document.addEventListener('DOMContentLoaded', () => {
             initApp();
             
-            // Add event listener
+            // Add event listeners
             document.getElementById('completeBtn').addEventListener('click', handleCompleteWorkout);
+            document.getElementById('themeToggle').addEventListener('click', toggleTheme);
         });
     </script>
 </body>

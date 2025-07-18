@@ -466,7 +466,7 @@
         </svg>
     </div>
     
-    <div class="sync-indicator" id="syncIndicator">Syncing with Google Sheets...</div>
+    <div class="sync-indicator" id="syncIndicator">Syncing workout data...</div>
     <button class="theme-toggle" id="themeToggle">🌙</button>
     
     <header>
@@ -506,10 +506,8 @@
     
     <script>
         // Configuration
-        const GOOGLE_SHEET_ID = '1YOUR_SHEET_ID_HERE';
-        const GOOGLE_API_KEY = 'YOUR_GOOGLE_API_KEY';
-        const SHEET_RANGE = 'Sheet1!A:B';
-
+        const CSV_URL = 'https://docs.google.com/spreadsheets/d/1-irk7wEJwBAC4X7I5t0zpLlZOCfKxK66mApDs8q7Tj0/export?format=csv';
+        
         const DEFAULT_EXERCISES = [
             { name: "Push-ups", reps: "10" },
             { name: "Dips", reps: "10" },
@@ -523,7 +521,7 @@
 
         // Database setup
         const DB_NAME = 'workoutTrackerDB';
-        const DB_VERSION = 6; // Incremented version for schema changes
+        const DB_VERSION = 6;
         const STORE_NAME = 'workouts';
         const SETTINGS_STORE = 'settings';
         const WORKOUT_CONFIG_STORE = 'workoutConfig';
@@ -746,40 +744,20 @@
             });
         }
         
-        // Fetch workout config from Google Sheets
+        // Fetch and parse workout config from Google Sheets CSV
         async function fetchWorkoutConfigFromGoogle() {
-            if (!GOOGLE_SHEET_ID || !GOOGLE_API_KEY) {
-                console.error('Google Sheet ID or API Key not configured');
-                return null;
-            }
-            
-            const url = `https://sheets.googleapis.com/v4/spreadsheets/${GOOGLE_SHEET_ID}/values/${SHEET_RANGE}?key=${GOOGLE_API_KEY}`;
-            
             try {
                 document.getElementById('syncIndicator').style.display = 'block';
+                const response = await fetch(CSV_URL);
                 
-                const response = await fetch(url);
-                const data = await response.json();
-                
-                if (!data.values || data.values.length === 0) {
-                    console.error('No data found in Google Sheet');
-                    return null;
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
                 }
                 
-                let exercises = data.values;
-                
-                if (exercises.length > 1 && 
-                    (exercises[0][0].toLowerCase().includes('exercise') || 
-                    exercises[0][1].toLowerCase().includes('rep'))) {
-                    exercises = exercises.slice(1);
-                }
-                
-                return exercises.map(row => ({
-                    name: row[0] || 'Exercise',
-                    reps: row[1] || '10'
-                }));
+                const csvData = await response.text();
+                return parseCSV(csvData);
             } catch (error) {
-                console.error('Error fetching workout config:', error);
+                console.error('Error fetching CSV:', error);
                 return null;
             } finally {
                 setTimeout(() => {
@@ -788,19 +766,60 @@
             }
         }
         
-        // Sync workout config with Google Sheets in background
+        // Enhanced CSV parser with error handling
+        function parseCSV(csvText) {
+            try {
+                const lines = csvText.split('\n').filter(line => line.trim() !== '');
+                const exercises = [];
+                
+                // Skip header if it contains "exercise" or "rep"
+                const hasHeader = lines.length > 0 && 
+                                (lines[0].toLowerCase().includes('exercise') || 
+                                 lines[0].toLowerCase().includes('rep'));
+                const startLine = hasHeader ? 1 : 0;
+
+                for (let i = startLine; i < lines.length; i++) {
+                    const line = lines[i].trim();
+                    if (!line) continue;
+                    
+                    // Handle quoted values and commas within values
+                    const parts = line.split(/,(?=(?:[^"]*"[^"]*")*[^"]*$)/)
+                                      .map(part => part.replace(/^"|"$/g, '').trim());
+                    
+                    if (parts.length >= 2) {
+                        exercises.push({
+                            name: parts[0] || 'Exercise',
+                            reps: parts[1] || '10'
+                        });
+                    }
+                }
+                
+                return exercises.length > 0 ? exercises : null;
+            } catch (error) {
+                console.error('Error parsing CSV:', error);
+                return null;
+            }
+        }
+        
+        // Sync workout config with Google Sheets CSV in background
         async function syncWorkoutConfigInBackground() {
             if (!navigator.onLine) return;
             
             try {
-                const config = await fetchWorkoutConfigFromGoogle();
-                if (config && config.length > 0) {
+                let config = await fetchWorkoutConfigFromGoogle();
+                
+                if (!config) {
+                    console.log('Using cached exercises (CSV unavailable)');
+                    config = await getWorkoutConfig();
+                }
+                
+                if (config) {
                     await saveWorkoutConfig(config);
                     
                     const exerciseList = document.getElementById('exerciseList');
                     exerciseList.style.opacity = '0';
                     
-                    setTimeout(async () => {
+                    setTimeout(() => {
                         uiState.workoutConfig = config;
                         populateExercises();
                         exerciseList.style.opacity = '1';
@@ -963,7 +982,7 @@
             btn.textContent = 'Completing...';
             
             // Get current date at midnight local time
-            const today = getDateAtMidnight(new Date());
+            const today = getDateAtMidlight(new Date());
             const todayStr = formatDate(today);
             
             // Check if already completed
@@ -1029,11 +1048,13 @@
                 document.getElementById('username').textContent = `Welcome, ${uiState.username}!`;
                 setCurrentDate();
                 
+                // Load workout config (will try CSV first, then fallback to cached/default)
                 uiState.workoutConfig = await getWorkoutConfig();
                 populateExercises();
                 
                 await createProgressChart();
                 
+                // Check if today's workout is already completed
                 const today = getDateAtMidnight(new Date());
                 const todayStr = formatDate(today);
                 const completedStatus = await getWorkoutCompletion(todayStr);
@@ -1041,13 +1062,14 @@
                     updateCompleteButtonState(completedStatus.synced);
                 }
                 
+                // Start background sync
                 setTimeout(syncWorkoutConfigInBackground, 1000);
             } catch (error) {
                 console.error('Initialization error:', error);
             }
         }
-        
-// Service Worker Registration
+
+        // Service Worker Registration
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('sw.js')

@@ -523,7 +523,7 @@
 
         // Database setup
         const DB_NAME = 'workoutTrackerDB';
-        const DB_VERSION = 5;
+        const DB_VERSION = 6; // Incremented version for schema changes
         const STORE_NAME = 'workouts';
         const SETTINGS_STORE = 'settings';
         const WORKOUT_CONFIG_STORE = 'workoutConfig';
@@ -534,22 +534,31 @@
             darkMode: localStorage.getItem('darkMode') === 'true',
             username: '',
             today: new Date(),
-            startDate: null,
+            firstWorkoutDate: null,
             daysCompleted: 0,
             workoutConfig: []
         };
         
-        // Format date as YYYY-MM-DD
+        // Helper function to get date at midnight (local time)
+        function getDateAtMidnight(date) {
+            const d = new Date(date);
+            d.setHours(0, 0, 0, 0);
+            return d;
+        }
+
+        // Format date as YYYY-MM-DD (local time)
         function formatDate(date) {
-            const year = date.getFullYear();
-            const month = String(date.getMonth() + 1).padStart(2, '0');
-            const day = String(date.getDate()).padStart(2, '0');
+            const d = getDateAtMidnight(date);
+            const year = d.getFullYear();
+            const month = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
             return `${year}-${month}-${day}`;
         }
         
-        // Format date as M/D
+        // Format date as M/D for display (local time)
         function formatShortDate(date) {
-            return `${date.getMonth() + 1}/${date.getDate()}`;
+            const d = getDateAtMidnight(date);
+            return `${d.getMonth() + 1}/${d.getDate()}`;
         }
         
         // Apply theme on load
@@ -676,22 +685,28 @@
         async function saveWorkoutCompletion(date, username) {
             if (!db) await openDB();
             
+            // Ensure we're saving the date at midnight local time
+            const workoutDate = getDateAtMidnight(date);
+            const dateStr = formatDate(workoutDate);
+            
             return new Promise((resolve, reject) => {
                 const transaction = db.transaction([STORE_NAME], 'readwrite');
                 const store = transaction.objectStore(STORE_NAME);
                 
                 const workout = {
-                    date: date,
+                    date: dateStr,
                     completed: true,
                     synced: false,
                     workoutId: 1,
                     username: username,
-                    timestamp: new Date().toISOString()
+                    timestamp: new Date().toISOString(),
+                    // Store the actual date object as timestamp for reference
+                    dateObj: workoutDate.getTime()
                 };
                 
                 const request = store.put(workout);
                 
-                request.onsuccess = () => resolve();
+                request.onsuccess = () => resolve(workoutDate);
                 request.onerror = (event) => reject(event.target.error);
             });
         }
@@ -755,7 +770,7 @@
                 
                 if (exercises.length > 1 && 
                     (exercises[0][0].toLowerCase().includes('exercise') || 
-                    exercises[0][1].toLowerCase().includes('rep')) {
+                    exercises[0][1].toLowerCase().includes('rep'))) {
                     exercises = exercises.slice(1);
                 }
                 
@@ -840,7 +855,7 @@
             container.innerHTML = '';
             infoContainer.innerHTML = '';
             
-            if (!uiState.startDate) {
+            if (!uiState.firstWorkoutDate) {
                 infoContainer.textContent = "Start tracking by completing your first workout!";
                 return;
             }
@@ -848,23 +863,23 @@
             const workouts = await getAllWorkouts();
             const workoutMap = new Map(workouts.map(w => [w.date, w]));
             
-            // Get today's date at midnight
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
-            const startDate = new Date(uiState.startDate);
-            startDate.setHours(0, 0, 0, 0);
+            // Get today's date at midnight local time
+            const today = getDateAtMidnight(new Date());
+            const firstWorkoutDate = getDateAtMidnight(uiState.firstWorkoutDate);
             
-            // Calculate days since start (Day 1 is the start date)
-            const daysSinceStart = Math.floor((today - startDate) / (1000 * 60 * 60 * 24));
-            const currentDay = Math.min(daysSinceStart + 1, 90); // +1 because Day 1 is the start date
+            // Calculate days since first workout (Day 1 is the first workout date)
+            const daysSinceStart = Math.floor((today - firstWorkoutDate) / (1000 * 60 * 60 * 24));
+            const currentDay = Math.min(daysSinceStart + 1, 90); // +1 because Day 1 is first workout
             
-            // Format start date for display
-            const formattedStartDate = startDate.toLocaleDateString('en-US', { 
+            // Format first workout date for display
+            const formattedFirstDate = firstWorkoutDate.toLocaleDateString('en-US', { 
+                weekday: 'short', 
                 year: 'numeric', 
                 month: 'short', 
                 day: 'numeric' 
             });
-            infoContainer.textContent = `Day ${currentDay} of 90 (Started ${formattedStartDate})`;
+            
+            infoContainer.textContent = `Day ${currentDay} of 90 (Started ${formattedFirstDate})`;
             
             // Create week headers (Sunday to Saturday)
             const weekHeader = document.createElement('div');
@@ -877,32 +892,31 @@
             });
             container.appendChild(weekHeader);
             
-            const startDateObj = new Date(uiState.startDate);
-            startDateObj.setHours(0, 0, 0, 0);
-            const startDayOfWeek = startDateObj.getDay(); // Sunday is 0
+            // Get day of week for first workout (0=Sunday)
+            const firstDayOfWeek = firstWorkoutDate.getDay();
             
-            // Create an array for the 90 days starting from Day 1
+            // Create all 90 days starting from first workout date
             const days = Array.from({ length: 90 }, (_, i) => {
-                const date = new Date(startDateObj);
-                date.setDate(startDateObj.getDate() + i);
+                const date = new Date(firstWorkoutDate);
+                date.setDate(firstWorkoutDate.getDate() + i);
                 return {
-                    dayNumber: i + 1, // Explicitly set Day 1 as first day
+                    dayNumber: i + 1, // Day numbers start at 1
                     date: date,
                     dateStr: formatDate(date)
                 };
             });
             
             // Calculate total weeks needed (including partial first week)
-            const totalWeeks = Math.ceil((startDayOfWeek + 90) / 7);
+            const totalWeeks = Math.ceil((firstDayOfWeek + 90) / 7);
             
             let dayCounter = 0;
             for (let week = 0; week < totalWeeks; week++) {
                 const grid = document.createElement('div');
                 grid.className = 'progress-grid';
                 
-                // For the first week, add empty cells before the start date
+                // For first week, add empty cells before the first workout day
                 if (week === 0) {
-                    for (let i = 0; i < startDayOfWeek; i++) {
+                    for (let i = 0; i < firstDayOfWeek; i++) {
                         const dayEl = document.createElement('div');
                         dayEl.className = 'progress-day empty';
                         dayEl.innerHTML = '<div class="day-number"></div>';
@@ -911,7 +925,7 @@
                 }
                 
                 // Add days for this week
-                for (let dayOfWeek = (week === 0 ? startDayOfWeek : 0); 
+                for (let dayOfWeek = (week === 0 ? firstDayOfWeek : 0); 
                      dayOfWeek < 7 && dayCounter < 90; 
                      dayOfWeek++) {
                     
@@ -948,9 +962,8 @@
             btn.disabled = true;
             btn.textContent = 'Completing...';
             
-            // Get today's date at midnight to avoid timezone issues
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
+            // Get current date at midnight local time
+            const today = getDateAtMidnight(new Date());
             const todayStr = formatDate(today);
             
             // Check if already completed
@@ -961,23 +974,20 @@
             }
             
             try {
-                // Set start date if not already set
-                if (!uiState.startDate) {
-                    uiState.startDate = todayStr;
-                    await saveSetting('startDate', uiState.startDate);
-                    // Update the today's date in state to match
-                    uiState.today = today;
-                }
+                // Save workout and get the exact date used
+                const workoutDate = await saveWorkoutCompletion(today, uiState.username);
                 
-                // Save workout
-                await saveWorkoutCompletion(todayStr, uiState.username);
+                // Set first workout date if not already set
+                if (!uiState.firstWorkoutDate) {
+                    uiState.firstWorkoutDate = workoutDate;
+                    await saveSetting('firstWorkoutDate', workoutDate.getTime());
+                }
                 
                 // Update UI
                 await createProgressChart();
                 document.getElementById('congratsMessage').style.display = 'block';
                 updateCompleteButtonState(false);
                 
-                // Hide congrats message after 5 seconds
                 setTimeout(() => {
                     document.getElementById('congratsMessage').style.display = 'none';
                 }, 5000);
@@ -1009,7 +1019,11 @@
             try {
                 await openDB();
                 
-                uiState.startDate = await getSetting('startDate');
+                // Load first workout date if it exists
+                const firstWorkoutTimestamp = await getSetting('firstWorkoutDate');
+                if (firstWorkoutTimestamp) {
+                    uiState.firstWorkoutDate = new Date(parseInt(firstWorkoutTimestamp));
+                }
                 
                 uiState.username = getUsername();
                 document.getElementById('username').textContent = `Welcome, ${uiState.username}!`;
@@ -1020,8 +1034,7 @@
                 
                 await createProgressChart();
                 
-                const today = new Date();
-                today.setHours(0, 0, 0, 0);
+                const today = getDateAtMidnight(new Date());
                 const todayStr = formatDate(today);
                 const completedStatus = await getWorkoutCompletion(todayStr);
                 if (completedStatus.completed) {
@@ -1034,7 +1047,7 @@
             }
         }
         
-        // Service Worker Registration
+// Service Worker Registration
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('sw.js')

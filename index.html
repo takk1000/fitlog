@@ -906,7 +906,7 @@
                 const date = new Date(startDateObj);
                 date.setDate(startDateObj.getDate() + i);
                 return {
-                    dayNumber: i + 1, // Explicitly set Day 1 as first day
+                    dayNumber: i, // Explicitly set Day 1 as first day
                     date: date,
                     dateStr: formatDate(date)
                 };

@@ -8,7 +8,6 @@
     <title>SwimFit Tracker</title>
     <link rel="manifest" href="manifest.json">
     <style>
-        /* CSS Reset */
         * {
             margin: 0;
             padding: 0;
@@ -16,7 +15,6 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
         
-        /* Variables */
         :root {
             --primary: #1a6dcc;
             --primary-light: #4a9aff;
@@ -42,7 +40,6 @@
             overflow-x: hidden;
         }
         
-        /* Water effect at bottom */
         body::after {
             content: "";
             position: fixed;
@@ -55,7 +52,6 @@
             z-index: -1;
         }
         
-        /* Header */
         header {
             text-align: center;
             padding: 20px 0;
@@ -102,7 +98,6 @@
             opacity: 0.8;
         }
         
-        /* Main Content */
         .container {
             max-width: 800px;
             margin: 0 auto;
@@ -130,7 +125,6 @@
             color: var(--primary);
         }
         
-        /* Exercises List */
         .exercise-list {
             list-style: none;
             transition: opacity 0.2s ease;
@@ -185,7 +179,6 @@
             color: #666;
         }
         
-        /* Complete Button */
         .complete-btn {
             display: block;
             width: 100%;
@@ -237,7 +230,6 @@
             display: none;
         }
         
-        /* Progress Section */
         .progress-container {
             text-align: center;
         }
@@ -299,7 +291,6 @@
             margin-top: 2px;
         }
         
-        /* Week headers */
         .week-header {
             display: grid;
             grid-template-columns: repeat(7, 1fr);
@@ -314,7 +305,6 @@
             font-weight: bold;
         }
         
-        /* Weeks */
         .week-label {
             font-size: 0.8rem;
             color: #666;
@@ -323,7 +313,6 @@
             text-align: left;
         }
         
-        /* Congrats Message */
         .congrats-message {
             background: var(--success);
             color: white;
@@ -340,7 +329,6 @@
             margin-bottom: 10px;
         }
         
-        /* Waves Animation */
         .wave {
             position: absolute;
             bottom: 0;
@@ -362,7 +350,6 @@
             fill: rgba(255, 255, 255, 0.15);
         }
         
-        /* Footer */
         footer {
             position: fixed;
             bottom: 0;
@@ -381,7 +368,6 @@
             text-decoration: none;
         }
         
-        /* Theme toggle */
         .theme-toggle {
             position: fixed;
             top: 15px;
@@ -398,7 +384,6 @@
             z-index: 100;
         }
         
-        /* Progress Info */
         .progress-info {
             text-align: center;
             margin-top: 15px;
@@ -406,7 +391,6 @@
             color: #666;
         }
         
-        /* Sync indicator */
         .sync-indicator {
             position: fixed;
             top: 15px;
@@ -426,7 +410,6 @@
             to { transform: translateX(0); opacity: 1; }
         }
         
-        /* Responsive */
         @media (min-width: 768px) {
             h1 {
                 font-size: 2.5rem;
@@ -454,7 +437,6 @@
             }
         }
         
-        /* Animation for water splash when button clicked */
         @keyframes splash {
             0% {
                 transform: scale(0);
@@ -523,15 +505,11 @@
     </footer>
     
     <script>
-        // ====================
         // Configuration
-        // ====================
-        // Replace with your Google Sheet ID and API Key
         const GOOGLE_SHEET_ID = '1YOUR_SHEET_ID_HERE';
         const GOOGLE_API_KEY = 'YOUR_GOOGLE_API_KEY';
-        const SHEET_RANGE = 'Sheet1!A:B'; // Columns A and B
+        const SHEET_RANGE = 'Sheet1!A:B';
 
-        // Default exercises to use before Google Sheets sync
         const DEFAULT_EXERCISES = [
             { name: "Push-ups", reps: "10" },
             { name: "Dips", reps: "10" },
@@ -543,10 +521,6 @@
             { name: "Plank", reps: "30 sec" }
         ];
 
-        // ====================
-        // Offline Tracking with IndexedDB
-        // ====================
-        
         // Database setup
         const DB_NAME = 'workoutTrackerDB';
         const DB_VERSION = 5;
@@ -757,9 +731,7 @@
             });
         }
         
-        // ====================
-        // Google Sheets Integration
-        // ====================
+        // Fetch workout config from Google Sheets
         async function fetchWorkoutConfigFromGoogle() {
             if (!GOOGLE_SHEET_ID || !GOOGLE_API_KEY) {
                 console.error('Google Sheet ID or API Key not configured');
@@ -783,7 +755,7 @@
                 
                 if (exercises.length > 1 && 
                     (exercises[0][0].toLowerCase().includes('exercise') || 
-                     exercises[0][1].toLowerCase().includes('rep'))) {
+                    exercises[0][1].toLowerCase().includes('rep')) {
                     exercises = exercises.slice(1);
                 }
                 
@@ -823,10 +795,6 @@
                 console.error('Background sync error:', error);
             }
         }
-        
-        // ====================
-        // UI Functions
-        // ====================
         
         // Get username from URL
         function getUsername() {
@@ -880,12 +848,23 @@
             const workouts = await getAllWorkouts();
             const workoutMap = new Map(workouts.map(w => [w.date, w]));
             
-            const today = new Date(uiState.today);
+            // Get today's date at midnight
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
             const startDate = new Date(uiState.startDate);
+            startDate.setHours(0, 0, 0, 0);
+            
+            // Calculate days since start (Day 1 is the start date)
             const daysSinceStart = Math.floor((today - startDate) / (1000 * 60 * 60 * 24));
             const currentDay = Math.min(daysSinceStart + 1, 90); // +1 because Day 1 is the start date
             
-            infoContainer.textContent = `Day ${currentDay} of 90 (Started ${uiState.startDate})`;
+            // Format start date for display
+            const formattedStartDate = startDate.toLocaleDateString('en-US', { 
+                year: 'numeric', 
+                month: 'short', 
+                day: 'numeric' 
+            });
+            infoContainer.textContent = `Day ${currentDay} of 90 (Started ${formattedStartDate})`;
             
             // Create week headers (Sunday to Saturday)
             const weekHeader = document.createElement('div');
@@ -899,28 +878,29 @@
             container.appendChild(weekHeader);
             
             const startDateObj = new Date(uiState.startDate);
+            startDateObj.setHours(0, 0, 0, 0);
             const startDayOfWeek = startDateObj.getDay(); // Sunday is 0
             
-            // Create days array starting from Day 1
+            // Create an array for the 90 days starting from Day 1
             const days = Array.from({ length: 90 }, (_, i) => {
                 const date = new Date(startDateObj);
                 date.setDate(startDateObj.getDate() + i);
                 return {
-                    dayNumber: i, // Explicitly set Day 1 as first day
+                    dayNumber: i + 1, // Explicitly set Day 1 as first day
                     date: date,
                     dateStr: formatDate(date)
                 };
             });
             
-            // Calculate total weeks needed
+            // Calculate total weeks needed (including partial first week)
             const totalWeeks = Math.ceil((startDayOfWeek + 90) / 7);
             
-            let dayCounter = 1;
+            let dayCounter = 0;
             for (let week = 0; week < totalWeeks; week++) {
                 const grid = document.createElement('div');
                 grid.className = 'progress-grid';
                 
-                // For first week, add empty cells before start date
+                // For the first week, add empty cells before the start date
                 if (week === 0) {
                     for (let i = 0; i < startDayOfWeek; i++) {
                         const dayEl = document.createElement('div');
@@ -932,7 +912,7 @@
                 
                 // Add days for this week
                 for (let dayOfWeek = (week === 0 ? startDayOfWeek : 0); 
-                     dayOfWeek < 7 && dayCounter <= 90; 
+                     dayOfWeek < 7 && dayCounter < 90; 
                      dayOfWeek++) {
                     
                     const day = days[dayCounter];
@@ -943,11 +923,13 @@
                         <div class="day-date">${formatShortDate(day.date)}</div>
                     `;
                     
+                    // Mark completed workouts
                     const status = workoutMap.get(day.dateStr);
                     if (status) {
                         dayEl.classList.add(status.synced ? 'completed' : 'unsynced');
                     }
                     
+                    // Mark today
                     if (day.dateStr === formatDate(today)) {
                         dayEl.classList.add('today');
                     }
@@ -966,8 +948,12 @@
             btn.disabled = true;
             btn.textContent = 'Completing...';
             
-            const todayStr = formatDate(uiState.today);
+            // Get today's date at midnight to avoid timezone issues
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const todayStr = formatDate(today);
             
+            // Check if already completed
             const completedStatus = await getWorkoutCompletion(todayStr);
             if (completedStatus.completed) {
                 updateCompleteButtonState(completedStatus.synced);
@@ -975,17 +961,23 @@
             }
             
             try {
+                // Set start date if not already set
                 if (!uiState.startDate) {
                     uiState.startDate = todayStr;
                     await saveSetting('startDate', uiState.startDate);
+                    // Update the today's date in state to match
+                    uiState.today = today;
                 }
                 
+                // Save workout
                 await saveWorkoutCompletion(todayStr, uiState.username);
                 
+                // Update UI
                 await createProgressChart();
                 document.getElementById('congratsMessage').style.display = 'block';
                 updateCompleteButtonState(false);
                 
+                // Hide congrats message after 5 seconds
                 setTimeout(() => {
                     document.getElementById('congratsMessage').style.display = 'none';
                 }, 5000);
@@ -1001,7 +993,7 @@
         function updateCompleteButtonState(synced) {
             const btn = document.getElementById('completeBtn');
             btn.disabled = true;
-            btn.textContent = synced ? 'Completed!' : 'Completed';
+            btn.textContent = synced ? 'Completed!' : 'Completed (Offline)';
             btn.style.background = 'var(--success)';
         }
         
@@ -1012,9 +1004,7 @@
             applyTheme();
         }
         
-        // ====================
         // App Initialization
-        // ====================
         async function initApp() {
             try {
                 await openDB();
@@ -1030,7 +1020,9 @@
                 
                 await createProgressChart();
                 
-                const todayStr = formatDate(uiState.today);
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                const todayStr = formatDate(today);
                 const completedStatus = await getWorkoutCompletion(todayStr);
                 if (completedStatus.completed) {
                     updateCompleteButtonState(completedStatus.synced);

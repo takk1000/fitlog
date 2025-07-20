@@ -6,7 +6,6 @@
     <meta name="description" content="Track your daily workouts with this easy-to-use tracker">
     <meta name="theme-color" content="#1a6dcc">
     <title>SwimFit Tracker</title>
-    <link rel="manifest" href="manifest.json">
     <style>
         * {
             margin: 0;
@@ -38,6 +37,7 @@
             padding-bottom: 80px;
             position: relative;
             overflow-x: hidden;
+            transition: background 0.5s ease;
         }
         
         body::after {
@@ -269,6 +269,7 @@
         .progress-day.completed {
             background: var(--success);
             color: white;
+            transform: scale(1.05);
         }
         
         .progress-day.unsynced {
@@ -410,6 +411,20 @@
             to { transform: translateX(0); opacity: 1; }
         }
         
+        .offline-indicator {
+            position: fixed;
+            top: 15px;
+            left: 15px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            padding: 5px 15px;
+            font-size: 0.8rem;
+            color: white;
+            display: none;
+            z-index: 100;
+            animation: slideIn 0.3s ease;
+        }
+        
         @media (min-width: 768px) {
             h1 {
                 font-size: 2.5rem;
@@ -455,6 +470,80 @@
             pointer-events: none;
             animation: splash 0.6s ease-out;
         }
+        
+        /* History section */
+        .history-container {
+            display: none;
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid #eee;
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 20px;
+        }
+        
+        .history-item {
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .history-item:last-child {
+            border-bottom: none;
+        }
+        
+        .history-date {
+            font-weight: bold;
+        }
+        
+        .history-status {
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+        }
+        
+        .status-completed {
+            background-color: var(--success-light);
+            color: white;
+        }
+        
+        .tab-container {
+            display: flex;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #eee;
+        }
+        
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all 0.3s;
+        }
+        
+        .tab.active {
+            border-bottom: 2px solid var(--primary);
+            color: var(--primary);
+            font-weight: bold;
+        }
+        
+        /* Streak animation */
+        @keyframes streakPulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        
+        .streak-badge {
+            background: var(--secondary);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            margin-top: 10px;
+            display: inline-block;
+            animation: streakPulse 1.5s infinite;
+        }
     </style>
 </head>
 <body>
@@ -467,6 +556,7 @@
     </div>
     
     <div class="sync-indicator" id="syncIndicator">Syncing workout data...</div>
+    <div class="offline-indicator" id="offlineIndicator">Offline Mode</div>
     <button class="theme-toggle" id="themeToggle">🌙</button>
     
     <header>
@@ -476,32 +566,47 @@
         </div>
         <div class="username" id="username">Welcome, Athlete!</div>
         <div class="date-display" id="currentDate"></div>
+        <div id="streakBadge" class="streak-badge" style="display: none;">🔥 3-Day Streak!</div>
     </header>
     
     <div class="container">
-        <div class="card">
-            <h2 class="card-title"><i>🏅</i> Today's Workout</h2>
-            <ul class="exercise-list" id="exerciseList">
-                <!-- Exercises will be populated by JS -->
-            </ul>
-            <button class="complete-btn" id="completeBtn">Complete Today's Workout</button>
-            <div class="congrats-message" id="congratsMessage">
-                <h3>Great Job! 🎉</h3>
-                <p>You've completed today's workout. Keep up the great work!</p>
+        <div class="tab-container">
+            <div class="tab active" data-tab="workout">Workout</div>
+            <div class="tab" data-tab="history">History</div>
+        </div>
+        
+        <div id="workoutTab">
+            <div class="card">
+                <h2 class="card-title"><i>🏅</i> Today's Workout</h2>
+                <ul class="exercise-list" id="exerciseList">
+                    <!-- Exercises will be populated by JS -->
+                </ul>
+                <button class="complete-btn" id="completeBtn">Complete Today's Workout</button>
+                <div class="congrats-message" id="congratsMessage">
+                    <h3>Great Job! 🎉</h3>
+                    <p>You've completed today's workout. Keep up the great work!</p>
+                </div>
+            </div>
+            
+            <div class="card progress-container">
+                <h2 class="card-title"><i>📈</i> 90-Day Progress</h2>
+                <div id="progressChart">
+                    <!-- Progress chart will be populated by JS -->
+                </div>
+                <div class="progress-info" id="progressInfo"></div>
             </div>
         </div>
         
-        <div class="card progress-container">
-            <h2 class="card-title"><i>📈</i> 90-Day Progress</h2>
-            <div id="progressChart">
-                <!-- Progress chart will be populated by JS -->
+        <div id="historyTab" class="card" style="display: none;">
+            <h2 class="card-title"><i>📅</i> Workout History</h2>
+            <div class="history-container" id="historyContainer">
+                <!-- History items will be populated by JS -->
             </div>
-            <div class="progress-info" id="progressInfo"></div>
         </div>
     </div>
     
     <footer>
-        <p>&copy; 2023 SwimFit Tracker | <a href="https://example.com/coaching" target="_blank">Get Personal Coaching</a></p>
+        <p>&copy; 2023 SwimFit Tracker | <a href="#" id="coachingLink">Get Personal Coaching</a></p>
     </footer>
     
     <script>
@@ -534,7 +639,9 @@
             today: new Date(),
             firstWorkoutDate: null,
             daysCompleted: 0,
-            workoutConfig: []
+            workoutConfig: [],
+            currentTab: 'workout',
+            currentStreak: 0
         };
         
         // Helper function to get date at midnight (local time)
@@ -557,6 +664,15 @@
         function formatShortDate(date) {
             const d = getDateAtMidnight(date);
             return `${d.getMonth() + 1}/${d.getDate()}`;
+        }
+        
+        // Format date for display
+        function formatDisplayDate(date) {
+            return new Date(date).toLocaleDateString('en-US', {
+                weekday: 'short',
+                month: 'short',
+                day: 'numeric'
+            });
         }
         
         // Apply theme on load
@@ -803,9 +919,13 @@
         
         // Sync workout config with Google Sheets CSV in background
         async function syncWorkoutConfigInBackground() {
-            if (!navigator.onLine) return;
+            if (!navigator.onLine) {
+                document.getElementById('offlineIndicator').style.display = 'block';
+                return;
+            }
             
             try {
+                document.getElementById('offlineIndicator').style.display = 'none';
                 let config = await fetchWorkoutConfigFromGoogle();
                 
                 if (!config) {
@@ -982,7 +1102,7 @@
             btn.textContent = 'Completing...';
             
             // Get current date at midnight local time
-            const today = getDateAtMidlight(new Date());
+            const today = getDateAtMidnight(new Date());
             const todayStr = formatDate(today);
             
             // Check if already completed
@@ -1002,10 +1122,38 @@
                     await saveSetting('firstWorkoutDate', workoutDate.getTime());
                 }
                 
+                // Animate exercise completion
+                const exerciseItems = document.querySelectorAll('.exercise-item');
+                exerciseItems.forEach((item, index) => {
+                    setTimeout(() => {
+                        item.style.backgroundColor = '#dff0d8';
+                        item.style.borderLeftColor = '#4caf50';
+                        item.querySelector('.exercise-icon').style.backgroundColor = '#4caf50';
+                    }, index * 150);
+                });
+                
+                // Show splash effect on button
+                const rect = btn.getBoundingClientRect();
+                const splash = document.createElement('div');
+                splash.className = 'splash';
+                splash.style.width = `${rect.width}px`;
+                splash.style.height = `${rect.height}px`;
+                splash.style.left = `${rect.left}px`;
+                splash.style.top = `${rect.top}px`;
+                document.body.appendChild(splash);
+                
+                setTimeout(() => {
+                    splash.remove();
+                }, 600);
+                
                 // Update UI
                 await createProgressChart();
                 document.getElementById('congratsMessage').style.display = 'block';
                 updateCompleteButtonState(false);
+                
+                // Update streak
+                await updateStreak();
+                await loadHistory();
                 
                 setTimeout(() => {
                     document.getElementById('congratsMessage').style.display = 'none';
@@ -1033,6 +1181,80 @@
             applyTheme();
         }
         
+        // Load workout history
+        async function loadHistory() {
+            const container = document.getElementById('historyContainer');
+            container.innerHTML = '';
+            
+            const workouts = await getAllWorkouts();
+            workouts.sort((a, b) => b.dateObj - a.dateObj);
+            
+            if (workouts.length === 0) {
+                container.innerHTML = '<p>No workout history yet. Complete your first workout to start tracking!</p>';
+                return;
+            }
+            
+            workouts.forEach(workout => {
+                const item = document.createElement('div');
+                item.className = 'history-item';
+                item.innerHTML = `
+                    <div class="history-date">${formatDisplayDate(workout.dateObj)}</div>
+                    <div class="history-status status-completed">Completed</div>
+                `;
+                container.appendChild(item);
+            });
+        }
+        
+        // Calculate and display streak
+        async function updateStreak() {
+            const workouts = await getAllWorkouts();
+            if (workouts.length === 0) return;
+            
+            // Sort by date descending
+            workouts.sort((a, b) => b.dateObj - a.dateObj);
+            
+            let streak = 0;
+            const today = getDateAtMidnight(new Date());
+            let currentDate = today;
+            
+            // Check consecutive days from today backwards
+            while (true) {
+                const dateStr = formatDate(currentDate);
+                const workout = workouts.find(w => w.date === dateStr);
+                
+                if (!workout || !workout.completed) break;
+                
+                streak++;
+                // Move to previous day
+                currentDate = new Date(currentDate);
+                currentDate.setDate(currentDate.getDate() - 1);
+            }
+            
+            uiState.currentStreak = streak;
+            
+            if (streak > 1) {
+                const streakBadge = document.getElementById('streakBadge');
+                streakBadge.textContent = `🔥 ${streak}-Day Streak!`;
+                streakBadge.style.display = 'block';
+            }
+        }
+        
+        // Switch tabs
+        function switchTab(tabName) {
+            uiState.currentTab = tabName;
+            
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.toggle('active', tab.dataset.tab === tabName);
+            });
+            
+            document.getElementById('workoutTab').style.display = tabName === 'workout' ? 'block' : 'none';
+            document.getElementById('historyTab').style.display = tabName === 'history' ? 'block' : 'none';
+            
+            if (tabName === 'history') {
+                loadHistory();
+            }
+        }
+        
         // App Initialization
         async function initApp() {
             try {
@@ -1048,11 +1270,12 @@
                 document.getElementById('username').textContent = `Welcome, ${uiState.username}!`;
                 setCurrentDate();
                 
-                // Load workout config (will try CSV first, then fallback to cached/default)
+                // Load workout config (use local version immediately)
                 uiState.workoutConfig = await getWorkoutConfig();
                 populateExercises();
                 
                 await createProgressChart();
+                await updateStreak();
                 
                 // Check if today's workout is already completed
                 const today = getDateAtMidnight(new Date());
@@ -1062,8 +1285,28 @@
                     updateCompleteButtonState(completedStatus.synced);
                 }
                 
-                // Start background sync
+                // Start background sync (non-blocking)
                 setTimeout(syncWorkoutConfigInBackground, 1000);
+                
+                // Set up tab switching
+                document.querySelectorAll('.tab').forEach(tab => {
+                    tab.addEventListener('click', () => switchTab(tab.dataset.tab));
+                });
+                
+                // Update offline status
+                window.addEventListener('online', () => {
+                    document.getElementById('offlineIndicator').style.display = 'none';
+                    syncWorkoutConfigInBackground();
+                });
+                
+                window.addEventListener('offline', () => {
+                    document.getElementById('offlineIndicator').style.display = 'block';
+                });
+                
+                if (!navigator.onLine) {
+                    document.getElementById('offlineIndicator').style.display = 'block';
+                }
+                
             } catch (error) {
                 console.error('Initialization error:', error);
             }
@@ -1088,6 +1331,12 @@
             
             document.getElementById('completeBtn').addEventListener('click', handleCompleteWorkout);
             document.getElementById('themeToggle').addEventListener('click', toggleTheme);
+            
+            // Handle coaching link
+            document.getElementById('coachingLink').addEventListener('click', (e) => {
+                e.preventDefault();
+                alert("Personal coaching feature is coming soon!");
+            });
         });
     </script>
 </body>

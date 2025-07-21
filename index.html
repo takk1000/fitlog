@@ -55,9 +55,91 @@
             z-index: -1;
         }
         
+        /* Loading Modal */
+        .loading-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            color: white;
+            transition: opacity 0.5s ease;
+        }
+        
+        .loading-modal.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+        
+        .loading-logo {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .loading-icon {
+            width: 80px;
+            height: 80px;
+            background: var(--brown-light);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: var(--teal-primary);
+            font-size: 36px;
+            margin-bottom: 15px;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        
+        .loading-title {
+            font-size: 2.2rem;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+        
+        .loading-username {
+            font-size: 1.4rem;
+            opacity: 0.9;
+            margin-bottom: 5px;
+        }
+        
+        .loading-date {
+            font-size: 1rem;
+            opacity: 0.8;
+            margin-top: 10px;
+        }
+        
+        .loading-spinner {
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top: 4px solid var(--accent);
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin-top: 20px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
         header {
             text-align: center;
-            padding: 15px 0;
+            padding: 15px 0 5px;
             margin-bottom: 15px;
             color: var(--white);
             position: relative;
@@ -67,7 +149,7 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            margin-bottom: 10px;
+            margin-bottom: 5px;
         }
         
         .logo-icon {
@@ -85,20 +167,9 @@
         }
         
         h1 {
-            font-size: 2rem;
+            font-size: 1.8rem;
             margin-bottom: 5px;
             text-shadow: 0 2px 4px rgba(0,0,0,0.2);
-        }
-        
-        .username {
-            font-size: 1.2rem;
-            opacity: 0.9;
-        }
-        
-        .date-display {
-            font-size: 0.9rem;
-            margin-top: 5px;
-            opacity: 0.8;
         }
         
         .container {
@@ -111,7 +182,7 @@
             border-radius: 15px;
             box-shadow: 0 8px 20px rgba(0,0,0,0.15);
             padding: 20px;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
             transition: all 0.3s ease;
         }
         
@@ -136,6 +207,7 @@
             max-height: 50vh;
             overflow-y: auto;
             padding-right: 5px;
+            margin-bottom: 15px;
         }
         
         .exercise-item {
@@ -200,6 +272,40 @@
             padding: 2px 8px;
             border-radius: 10px;
             margin-right: 8px;
+        }
+        
+        .coaching-cta {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            margin: 20px 0 10px;
+            background: linear-gradient(135deg, var(--accent), #e68a00);
+            border-radius: 10px;
+            color: white;
+            font-weight: bold;
+            text-align: center;
+            border-left: 4px solid var(--brown-dark);
+            animation: pulse 2s infinite;
+        }
+        
+        .coaching-icon {
+            font-size: 28px;
+            margin-right: 15px;
+            flex-shrink: 0;
+        }
+        
+        .coaching-content {
+            flex-grow: 1;
+        }
+        
+        .coaching-title {
+            font-size: 1.2rem;
+            margin-bottom: 5px;
+        }
+        
+        .coaching-subtitle {
+            font-size: 0.9rem;
+            opacity: 0.9;
         }
         
         .complete-btn-container {
@@ -497,28 +603,38 @@
             color: white;
         }
         
-        .tab-container {
+        /* Bottom navigation */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: var(--brown-dark);
             display: flex;
-            margin-bottom: 15px;
-            border-bottom: 2px solid var(--brown-light);
-            background: var(--white);
-            border-radius: 8px;
-            overflow: hidden;
+            justify-content: space-around;
+            padding: 10px 0;
+            z-index: 100;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.2);
         }
         
-        .tab {
-            padding: 12px 20px;
-            cursor: pointer;
-            transition: all 0.3s;
-            text-align: center;
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: var(--brown-light);
+            text-decoration: none;
+            font-size: 0.8rem;
             flex: 1;
-            font-weight: 600;
-            color: var(--brown-dark);
+            padding: 5px;
         }
         
-        .tab.active {
-            background: var(--teal-primary);
-            color: var(--white);
+        .nav-item.active {
+            color: var(--accent);
+        }
+        
+        .nav-icon {
+            font-size: 1.4rem;
+            margin-bottom: 3px;
         }
         
         /* Streak animation */
@@ -546,12 +662,16 @@
                 padding-bottom: 100px;
             }
             
-            h1 {
-                font-size: 2.5rem;
+            .loading-title {
+                font-size: 2.8rem;
             }
             
-            .username {
-                font-size: 1.4rem;
+            .loading-username {
+                font-size: 1.8rem;
+            }
+            
+            h1 {
+                font-size: 2.5rem;
             }
             
             .card {
@@ -582,6 +702,48 @@
             
             .progress-day {
                 font-size: 0.8rem;
+            }
+            
+            .bottom-nav {
+                display: none;
+            }
+            
+            .tab-container {
+                display: flex;
+                margin-bottom: 15px;
+                border-bottom: 2px solid var(--brown-light);
+                background: var(--white);
+                border-radius: 8px;
+                overflow: hidden;
+            }
+            
+            .tab {
+                padding: 12px 20px;
+                cursor: pointer;
+                transition: all 0.3s;
+                text-align: center;
+                flex: 1;
+                font-weight: 600;
+                color: var(--brown-dark);
+            }
+            
+            .tab.active {
+                background: var(--teal-primary);
+                color: var(--white);
+            }
+        }
+        
+        @media (max-width: 767px) {
+            .tab-container {
+                display: none;
+            }
+            
+            .card {
+                margin-bottom: 10px;
+            }
+            
+            .exercise-list {
+                max-height: 40vh;
             }
         }
         
@@ -652,6 +814,16 @@
     </style>
 </head>
 <body>
+    <div class="loading-modal" id="loadingModal">
+        <div class="loading-logo">
+            <div class="loading-icon">🏊</div>
+            <h2 class="loading-title">SwimFit Tracker</h2>
+            <div class="loading-username" id="loadingUsername">Welcome, Athlete!</div>
+            <div class="loading-date" id="loadingDate"></div>
+        </div>
+        <div class="loading-spinner"></div>
+    </div>
+    
     <div class="wave">
         <svg data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 120" preserveAspectRatio="none">
             <path d="M0,0V46.29c47.79,22.2,103.59,32.17,158,28,70.36-5.37,136.33-33.31,206.8-37.5C438.64,32.43,512.34,53.67,583,72.05c69.27,18,138.3,24.88,209.4,13.08,36.15-6,69.85-17.84,104.45-29.34C989.49,25,1113-14.29,1200,52.47V0Z" opacity=".25" class="shape-fill"></path>
@@ -669,8 +841,6 @@
             <div class="logo-icon">🏊</div>
             <h1>SwimFit Tracker</h1>
         </div>
-        <div class="username" id="username">Welcome, Athlete!</div>
-        <div class="date-display" id="currentDate"></div>
         <div id="streakBadge" class="streak-badge" style="display: none;">🔥 3-Day Streak!</div>
     </header>
     
@@ -694,6 +864,15 @@
                     <ul class="exercise-list" id="exerciseList">
                         <!-- Exercises will be populated by JS -->
                     </ul>
+                    
+                    <!-- Coaching CTA -->
+                    <div class="coaching-cta" id="coachingCta">
+                        <div class="coaching-icon">👨‍🏫</div>
+                        <div class="coaching-content">
+                            <div class="coaching-title">Get Personal Coaching</div>
+                            <div class="coaching-subtitle">Unlock your full potential with expert guidance</div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -727,8 +906,24 @@
         <button class="complete-btn" id="completeBtn">Complete Today's Workout</button>
     </div>
     
+    <!-- Bottom Navigation (Mobile) -->
+    <div class="bottom-nav">
+        <a href="#" class="nav-item active" data-tab="workout">
+            <span class="nav-icon">💪</span>
+            <span>Workout</span>
+        </a>
+        <a href="#" class="nav-item" data-tab="history">
+            <span class="nav-icon">📅</span>
+            <span>History</span>
+        </a>
+        <a href="#" class="nav-item" data-tab="progress">
+            <span class="nav-icon">📈</span>
+            <span>Progress</span>
+        </a>
+    </div>
+    
     <footer>
-        <p>&copy; 2023 SwimFit Tracker | <a href="#" id="coachingLink">Get Personal Coaching</a></p>
+        <p>&copy; 2023 SwimFit Tracker | <a href="#" id="coachingLink">Privacy Policy</a></p>
     </footer>
     
     <script>
@@ -1080,13 +1275,14 @@
         
         // Set current date
         function setCurrentDate() {
-            document.getElementById('currentDate').textContent = 
-                uiState.today.toLocaleDateString('en-US', { 
-                    weekday: 'long', 
-                    year: 'numeric', 
-                    month: 'long', 
-                    day: 'numeric' 
-                });
+            const dateDisplay = uiState.today.toLocaleDateString('en-US', { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
+            });
+            
+            document.getElementById('loadingDate').textContent = dateDisplay;
         }
         
         // Populate exercises list
@@ -1378,10 +1574,17 @@
         function switchTab(tabName) {
             uiState.currentTab = tabName;
             
+            // Update top tabs
             document.querySelectorAll('.tab').forEach(tab => {
                 tab.classList.toggle('active', tab.dataset.tab === tabName);
             });
             
+            // Update bottom nav
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.toggle('active', item.dataset.tab === tabName);
+            });
+            
+            // Show/hide content
             document.getElementById('workoutTab').style.display = tabName === 'workout' ? 'block' : 'none';
             document.getElementById('historyTab').style.display = tabName === 'history' ? 'block' : 'none';
             document.getElementById('progressTab').style.display = tabName === 'progress' ? 'block' : 'none';
@@ -1405,23 +1608,11 @@
                 }
                 
                 uiState.username = getUsername();
-                document.getElementById('username').textContent = `Welcome, ${uiState.username}!`;
+                document.getElementById('loadingUsername').textContent = `Welcome, ${uiState.username}!`;
                 setCurrentDate();
                 
                 // Load workout config (use local version immediately)
                 uiState.workoutConfig = await getWorkoutConfig();
-                populateExercises();
-                
-                await createProgressChart();
-                await updateStreak();
-                
-                // Check if today's workout is already completed
-                const today = getDateAtMidnight(new Date());
-                const todayStr = formatDate(today);
-                const completedStatus = await getWorkoutCompletion(todayStr);
-                if (completedStatus.completed) {
-                    updateCompleteButtonState(completedStatus.synced);
-                }
                 
                 // Start background sync (non-blocking)
                 setTimeout(syncWorkoutConfigInBackground, 1000);
@@ -1429,6 +1620,20 @@
                 // Set up tab switching
                 document.querySelectorAll('.tab').forEach(tab => {
                     tab.addEventListener('click', () => switchTab(tab.dataset.tab));
+                });
+                
+                // Set up mobile navigation
+                document.querySelectorAll('.nav-item').forEach(item => {
+                    item.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        switchTab(item.dataset.tab);
+                    });
+                });
+                
+                // Set up coaching CTA
+                document.getElementById('coachingCta').addEventListener('click', (e) => {
+                    e.preventDefault();
+                    alert("Personal coaching feature is coming soon!");
                 });
                 
                 // Update offline status
@@ -1444,6 +1649,23 @@
                 if (!navigator.onLine) {
                     document.getElementById('offlineIndicator').style.display = 'block';
                 }
+                
+                // Hide loading modal after 1.5 seconds
+                setTimeout(() => {
+                    document.getElementById('loadingModal').classList.add('hidden');
+                    populateExercises();
+                    createProgressChart();
+                    updateStreak();
+                    
+                    // Check if today's workout is already completed
+                    const today = getDateAtMidnight(new Date());
+                    const todayStr = formatDate(today);
+                    getWorkoutCompletion(todayStr).then(completedStatus => {
+                        if (completedStatus.completed) {
+                            updateCompleteButtonState(completedStatus.synced);
+                        }
+                    });
+                }, 1500);
                 
             } catch (error) {
                 console.error('Initialization error:', error);
@@ -1473,7 +1695,7 @@
             // Handle coaching link
             document.getElementById('coachingLink').addEventListener('click', (e) => {
                 e.preventDefault();
-                alert("Personal coaching feature is coming soon!");
+                alert("Privacy policy details will be available soon!");
             });
         });
     </script>

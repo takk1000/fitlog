@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Track your daily workouts with this easy-to-use tracker">
-    <meta name="theme-color" content="#1a6dcc">
+    <meta name="theme-color" content="#008080">
     <title>SwimFit Tracker</title>
     <style>
         * {
@@ -15,26 +15,29 @@
         }
         
         :root {
-            --primary: #1a6dcc;
-            --primary-light: #4a9aff;
-            --secondary: #ff9800;
-            --dark: #0a2c5c;
-            --light: #e6f2ff;
-            --success: #4caf50;
-            --success-light: #81c784;
-            --warning: #ffc107;
-            --danger: #f44336;
+            --teal-primary: #008080;
+            --teal-light: #4DB6AC;
+            --teal-dark: #006064;
+            --brown-primary: #8B4513;
+            --brown-light: #D2B48C;
+            --brown-dark: #5D4037;
+            --accent: #FF9800;
+            --light: #E0F2F1;
+            --dark: #263238;
+            --success: #4CAF50;
+            --warning: #FFC107;
+            --danger: #F44336;
             --white: #ffffff;
             --gray: #f5f5f5;
             --text: #333333;
         }
         
         body {
-            background: linear-gradient(135deg, var(--primary), var(--dark));
+            background: linear-gradient(135deg, var(--teal-primary), var(--teal-dark));
             color: var(--text);
             min-height: 100vh;
-            padding: 20px;
-            padding-bottom: 80px;
+            padding: 15px;
+            padding-bottom: 120px;
             position: relative;
             overflow-x: hidden;
             transition: background 0.5s ease;
@@ -47,15 +50,15 @@
             left: 0;
             width: 100%;
             height: 20%;
-            background: linear-gradient(to top, rgba(26, 109, 204, 0.7), transparent);
+            background: linear-gradient(to top, rgba(0, 128, 128, 0.7), transparent);
             pointer-events: none;
             z-index: -1;
         }
         
         header {
             text-align: center;
-            padding: 20px 0;
-            margin-bottom: 20px;
+            padding: 15px 0;
+            margin-bottom: 15px;
             color: var(--white);
             position: relative;
         }
@@ -70,13 +73,13 @@
         .logo-icon {
             width: 50px;
             height: 50px;
-            background: var(--white);
+            background: var(--brown-light);
             border-radius: 50%;
             display: flex;
             justify-content: center;
             align-items: center;
             margin-right: 10px;
-            color: var(--primary);
+            color: var(--teal-primary);
             font-size: 24px;
             font-weight: bold;
         }
@@ -107,37 +110,42 @@
             background: var(--white);
             border-radius: 15px;
             box-shadow: 0 8px 20px rgba(0,0,0,0.15);
-            padding: 25px;
-            margin-bottom: 25px;
+            padding: 20px;
+            margin-bottom: 20px;
             transition: all 0.3s ease;
         }
         
         .card-title {
-            font-size: 1.5rem;
-            margin-bottom: 20px;
-            color: var(--dark);
+            font-size: 1.4rem;
+            margin-bottom: 15px;
+            color: var(--teal-dark);
             display: flex;
             align-items: center;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--brown-light);
         }
         
         .card-title i {
             margin-right: 10px;
-            color: var(--primary);
+            color: var(--teal-primary);
         }
         
         .exercise-list {
             list-style: none;
             transition: opacity 0.2s ease;
+            max-height: 50vh;
+            overflow-y: auto;
+            padding-right: 5px;
         }
         
         .exercise-item {
             display: flex;
             align-items: center;
-            padding: 15px;
-            margin-bottom: 12px;
-            background: var(--gray);
+            padding: 12px;
+            margin-bottom: 10px;
+            background: var(--light);
             border-radius: 10px;
-            border-left: 4px solid var(--primary);
+            border-left: 4px solid var(--teal-primary);
             transition: all 0.3s ease;
             animation: fadeIn 0.5s ease;
         }
@@ -150,19 +158,22 @@
         .exercise-item:hover {
             transform: translateY(-3px);
             box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            background: var(--teal-light);
+            color: white;
         }
         
         .exercise-icon {
             width: 40px;
             height: 40px;
-            background: var(--primary-light);
+            background: var(--brown-light);
             border-radius: 50%;
             display: flex;
             justify-content: center;
             align-items: center;
-            margin-right: 15px;
-            color: var(--white);
+            margin-right: 12px;
+            color: var(--brown-dark);
             flex-shrink: 0;
+            font-size: 18px;
         }
         
         .exercise-info {
@@ -172,18 +183,39 @@
         .exercise-name {
             font-weight: 600;
             font-size: 1.1rem;
+            margin-bottom: 3px;
         }
         
         .exercise-reps {
             font-size: 0.9rem;
-            color: #666;
+            color: var(--brown-dark);
+            display: flex;
+            align-items: center;
+        }
+        
+        .reps-count {
+            display: inline-block;
+            background: var(--teal-primary);
+            color: white;
+            padding: 2px 8px;
+            border-radius: 10px;
+            margin-right: 8px;
+        }
+        
+        .complete-btn-container {
+            position: fixed;
+            bottom: 70px;
+            left: 0;
+            width: 100%;
+            padding: 0 15px;
+            z-index: 100;
         }
         
         .complete-btn {
             display: block;
             width: 100%;
-            padding: 18px;
-            background: var(--secondary);
+            padding: 16px;
+            background: var(--brown-primary);
             color: var(--white);
             border: none;
             border-radius: 10px;
@@ -191,8 +223,7 @@
             font-weight: bold;
             cursor: pointer;
             transition: all 0.3s ease;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-            margin-top: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
             position: relative;
             overflow: hidden;
         }
@@ -210,9 +241,9 @@
         }
         
         .complete-btn:hover {
-            background: #e68a00;
+            background: var(--brown-dark);
             transform: translateY(-3px);
-            box-shadow: 0 6px 12px rgba(0,0,0,0.25);
+            box-shadow: 0 6px 15px rgba(0,0,0,0.3);
         }
         
         .complete-btn:hover::after {
@@ -238,7 +269,7 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
         }
         
         .progress-grid {
@@ -267,18 +298,18 @@
         }
         
         .progress-day.completed {
-            background: var(--success);
+            background: var(--teal-primary);
             color: white;
             transform: scale(1.05);
         }
         
         .progress-day.unsynced {
-            background: var(--success-light);
+            background: var(--teal-light);
             color: white;
         }
         
         .progress-day.today {
-            box-shadow: 0 0 0 2px var(--secondary);
+            box-shadow: 0 0 0 2px var(--accent);
         }
         
         .day-number {
@@ -302,31 +333,31 @@
         .day-header {
             text-align: center;
             font-size: 0.7rem;
-            color: #666;
+            color: var(--brown-dark);
             font-weight: bold;
         }
         
         .week-label {
             font-size: 0.8rem;
-            color: #666;
+            color: var(--brown-dark);
             margin-top: 20px;
             margin-bottom: 5px;
             text-align: left;
         }
         
         .congrats-message {
-            background: var(--success);
+            background: var(--teal-primary);
             color: white;
-            padding: 20px;
+            padding: 15px;
             border-radius: 10px;
             text-align: center;
-            margin-top: 20px;
+            margin-top: 15px;
             display: none;
             animation: fadeIn 0.5s ease;
         }
         
         .congrats-message h3 {
-            font-size: 1.5rem;
+            font-size: 1.4rem;
             margin-bottom: 10px;
         }
         
@@ -348,7 +379,7 @@
         }
         
         .wave .shape-fill {
-            fill: rgba(255, 255, 255, 0.15);
+            fill: rgba(139, 69, 19, 0.15);
         }
         
         footer {
@@ -356,17 +387,18 @@
             bottom: 0;
             left: 0;
             width: 100%;
-            background: rgba(10, 44, 92, 0.9);
+            background: var(--brown-dark);
             color: var(--white);
             text-align: center;
-            padding: 15px;
+            padding: 12px;
             font-size: 0.8rem;
             z-index: 10;
         }
         
         footer a {
-            color: var(--secondary);
+            color: var(--brown-light);
             text-decoration: none;
+            font-weight: 600;
         }
         
         .theme-toggle {
@@ -389,7 +421,10 @@
             text-align: center;
             margin-top: 15px;
             font-size: 0.9rem;
-            color: #666;
+            color: var(--brown-dark);
+            padding: 10px;
+            background: var(--light);
+            border-radius: 8px;
         }
         
         .sync-indicator {
@@ -425,7 +460,92 @@
             animation: slideIn 0.3s ease;
         }
         
+        /* History section */
+        .history-container {
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid #eee;
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 15px;
+        }
+        
+        .history-item {
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .history-item:last-child {
+            border-bottom: none;
+        }
+        
+        .history-date {
+            font-weight: bold;
+            color: var(--brown-dark);
+        }
+        
+        .history-status {
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+        }
+        
+        .status-completed {
+            background-color: var(--teal-primary);
+            color: white;
+        }
+        
+        .tab-container {
+            display: flex;
+            margin-bottom: 15px;
+            border-bottom: 2px solid var(--brown-light);
+            background: var(--white);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        .tab {
+            padding: 12px 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+            flex: 1;
+            font-weight: 600;
+            color: var(--brown-dark);
+        }
+        
+        .tab.active {
+            background: var(--teal-primary);
+            color: var(--white);
+        }
+        
+        /* Streak animation */
+        @keyframes streakPulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        
+        .streak-badge {
+            background: var(--accent);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            margin-top: 10px;
+            display: inline-block;
+            animation: streakPulse 1.5s infinite;
+        }
+        
+        /* Mobile optimizations */
         @media (min-width: 768px) {
+            body {
+                padding: 20px;
+                padding-bottom: 100px;
+            }
+            
             h1 {
                 font-size: 2.5rem;
             }
@@ -434,13 +554,26 @@
                 font-size: 1.4rem;
             }
             
+            .card {
+                padding: 25px;
+                margin-bottom: 25px;
+            }
+            
             .exercise-item {
-                padding: 18px;
+                padding: 15px;
+                margin-bottom: 12px;
+            }
+            
+            .complete-btn-container {
+                position: relative;
+                bottom: auto;
+                left: auto;
+                padding: 0;
+                margin-top: 20px;
             }
             
             .complete-btn {
-                font-size: 1.3rem;
-                padding: 20px;
+                padding: 18px;
             }
             
             .progress-grid {
@@ -471,78 +604,50 @@
             animation: splash 0.6s ease-out;
         }
         
-        /* History section */
-        .history-container {
-            display: none;
-            max-height: 300px;
-            overflow-y: auto;
-            border: 1px solid #eee;
-            border-radius: 10px;
-            padding: 15px;
-            margin-top: 20px;
+        /* Exercise completion progress */
+        .exercise-progress {
+            height: 5px;
+            background: #e0e0e0;
+            border-radius: 3px;
+            margin-top: 5px;
+            overflow: hidden;
         }
         
-        .history-item {
-            padding: 10px;
-            border-bottom: 1px solid #eee;
+        .progress-bar {
+            height: 100%;
+            background: var(--teal-primary);
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+        
+        /* Mobile exercise list scroll */
+        .exercise-scroll-container {
+            max-height: 50vh;
+            overflow-y: auto;
+            margin-bottom: 15px;
+            padding-right: 5px;
+        }
+        
+        /* Section headers */
+        .section-header {
             display: flex;
             justify-content: space-between;
-        }
-        
-        .history-item:last-child {
-            border-bottom: none;
-        }
-        
-        .history-date {
-            font-weight: bold;
-        }
-        
-        .history-status {
-            padding: 3px 8px;
-            border-radius: 12px;
-            font-size: 0.8rem;
-        }
-        
-        .status-completed {
-            background-color: var(--success-light);
-            color: white;
-        }
-        
-        .tab-container {
-            display: flex;
+            align-items: center;
             margin-bottom: 15px;
-            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--brown-light);
         }
         
-        .tab {
-            padding: 10px 20px;
-            cursor: pointer;
-            border-bottom: 2px solid transparent;
-            transition: all 0.3s;
+        .section-title {
+            font-size: 1.4rem;
+            color: var(--teal-dark);
+            display: flex;
+            align-items: center;
         }
         
-        .tab.active {
-            border-bottom: 2px solid var(--primary);
-            color: var(--primary);
-            font-weight: bold;
-        }
-        
-        /* Streak animation */
-        @keyframes streakPulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.1); }
-            100% { transform: scale(1); }
-        }
-        
-        .streak-badge {
-            background: var(--secondary);
-            color: white;
-            padding: 5px 10px;
-            border-radius: 20px;
-            font-size: 0.8rem;
-            margin-top: 10px;
-            display: inline-block;
-            animation: streakPulse 1.5s infinite;
+        .section-icon {
+            margin-right: 10px;
+            color: var(--teal-primary);
         }
     </style>
 </head>
@@ -573,27 +678,23 @@
         <div class="tab-container">
             <div class="tab active" data-tab="workout">Workout</div>
             <div class="tab" data-tab="history">History</div>
+            <div class="tab" data-tab="progress">Progress</div>
         </div>
         
         <div id="workoutTab">
             <div class="card">
-                <h2 class="card-title"><i>🏅</i> Today's Workout</h2>
-                <ul class="exercise-list" id="exerciseList">
-                    <!-- Exercises will be populated by JS -->
-                </ul>
-                <button class="complete-btn" id="completeBtn">Complete Today's Workout</button>
-                <div class="congrats-message" id="congratsMessage">
-                    <h3>Great Job! 🎉</h3>
-                    <p>You've completed today's workout. Keep up the great work!</p>
+                <div class="section-header">
+                    <div class="section-title">
+                        <i class="section-icon">🏅</i> Today's Workout
+                    </div>
+                    <div class="progress-info">Day <span id="dayCount">1</span> of 90</div>
                 </div>
-            </div>
-            
-            <div class="card progress-container">
-                <h2 class="card-title"><i>📈</i> 90-Day Progress</h2>
-                <div id="progressChart">
-                    <!-- Progress chart will be populated by JS -->
+                
+                <div class="exercise-scroll-container">
+                    <ul class="exercise-list" id="exerciseList">
+                        <!-- Exercises will be populated by JS -->
+                    </ul>
                 </div>
-                <div class="progress-info" id="progressInfo"></div>
             </div>
         </div>
         
@@ -603,6 +704,27 @@
                 <!-- History items will be populated by JS -->
             </div>
         </div>
+        
+        <div id="progressTab" class="card" style="display: none;">
+            <div class="section-header">
+                <div class="section-title">
+                    <i class="section-icon">📈</i> 90-Day Progress
+                </div>
+            </div>
+            <div id="progressChart">
+                <!-- Progress chart will be populated by JS -->
+            </div>
+            <div class="progress-info" id="progressInfo"></div>
+        </div>
+        
+        <div class="congrats-message" id="congratsMessage">
+            <h3>Great Job! 🎉</h3>
+            <p>You've completed today's workout. Keep up the great work!</p>
+        </div>
+    </div>
+    
+    <div class="complete-btn-container">
+        <button class="complete-btn" id="completeBtn">Complete Today's Workout</button>
     </div>
     
     <footer>
@@ -678,10 +800,10 @@
         // Apply theme on load
         function applyTheme() {
             if (uiState.darkMode) {
-                document.body.style.background = 'linear-gradient(135deg, #0a2c5c, #051a38)';
+                document.body.style.background = 'linear-gradient(135deg, #006064, #004d40)';
                 document.getElementById('themeToggle').textContent = '☀️';
             } else {
-                document.body.style.background = 'linear-gradient(135deg, var(--primary), var(--dark))';
+                document.body.style.background = 'linear-gradient(135deg, var(--teal-primary), var(--teal-dark))';
                 document.getElementById('themeToggle').textContent = '🌙';
             }
         }
@@ -980,7 +1102,13 @@
                     <div class="exercise-icon">${index % 2 === 0 ? '💪' : '🏊'}</div>
                     <div class="exercise-info">
                         <div class="exercise-name">${ex.name}</div>
-                        <div class="exercise-reps">${ex.reps}</div>
+                        <div class="exercise-reps">
+                            <span class="reps-count">${ex.reps}</span>
+                            ${ex.name.includes('min') || ex.name.includes('sec') ? '' : 'reps'}
+                        </div>
+                        <div class="exercise-progress">
+                            <div class="progress-bar" style="width:0%"></div>
+                        </div>
                     </div>
                 `;
                 exerciseList.appendChild(li);
@@ -1009,6 +1137,9 @@
             // Calculate days since first workout (Day 1 is the first workout date)
             const daysSinceStart = Math.floor((today - firstWorkoutDate) / (1000 * 60 * 60 * 24));
             const currentDay = Math.min(daysSinceStart + 1, 90); // +1 because Day 1 is first workout
+            
+            // Update day counter
+            document.getElementById('dayCount').textContent = currentDay;
             
             // Format first workout date for display
             const formattedFirstDate = firstWorkoutDate.toLocaleDateString('en-US', { 
@@ -1129,6 +1260,10 @@
                         item.style.backgroundColor = '#dff0d8';
                         item.style.borderLeftColor = '#4caf50';
                         item.querySelector('.exercise-icon').style.backgroundColor = '#4caf50';
+                        
+                        // Animate progress bar
+                        const progressBar = item.querySelector('.progress-bar');
+                        progressBar.style.width = '100%';
                     }, index * 150);
                 });
                 
@@ -1190,7 +1325,7 @@
             workouts.sort((a, b) => b.dateObj - a.dateObj);
             
             if (workouts.length === 0) {
-                container.innerHTML = '<p>No workout history yet. Complete your first workout to start tracking!</p>';
+                container.innerHTML = '<p style="text-align:center;padding:20px;color:#666;">No workout history yet. Complete your first workout to start tracking!</p>';
                 return;
             }
             
@@ -1249,9 +1384,12 @@
             
             document.getElementById('workoutTab').style.display = tabName === 'workout' ? 'block' : 'none';
             document.getElementById('historyTab').style.display = tabName === 'history' ? 'block' : 'none';
+            document.getElementById('progressTab').style.display = tabName === 'progress' ? 'block' : 'none';
             
             if (tabName === 'history') {
                 loadHistory();
+            } else if (tabName === 'progress') {
+                createProgressChart();
             }
         }
         

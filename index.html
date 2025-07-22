@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Track your daily workouts with this easy-to-use tracker">
-    <meta name="theme-color" content="#1a6dcc">
+    <meta name="theme-color" content="#0d9488">
     <title>SwimFit Tracker</title>
     <link rel="manifest" href="manifest.json">
     <style>
@@ -16,26 +16,28 @@
         }
         
         :root {
-            --primary: #1a6dcc;
-            --primary-light: #4a9aff;
-            --secondary: #ff9800;
-            --dark: #0a2c5c;
-            --light: #e6f2ff;
-            --success: #4caf50;
-            --success-light: #81c784;
-            --warning: #ffc107;
-            --danger: #f44336;
+            --primary: #0d9488;
+            --primary-light: #5eead4;
+            --primary-dark: #115e59;
+            --secondary: #f97316;
+            --secondary-light: #fdba74;
+            --dark: #0f172a;
+            --light: #f0fdfa;
+            --success: #22c55e;
+            --success-light: #86efac;
+            --warning: #f59e0b;
+            --danger: #ef4444;
             --white: #ffffff;
-            --gray: #f5f5f5;
-            --text: #333333;
+            --gray: #f8fafc;
+            --text: #334155;
+            --text-light: #64748b;
         }
         
         body {
-            background: linear-gradient(135deg, var(--primary), var(--dark));
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
             color: var(--text);
             min-height: 100vh;
             padding: 20px;
-            padding-bottom: 80px;
             position: relative;
             overflow-x: hidden;
         }
@@ -47,24 +49,36 @@
             left: 0;
             width: 100%;
             height: 20%;
-            background: linear-gradient(to top, rgba(26, 109, 204, 0.7), transparent);
+            background: linear-gradient(to top, rgba(13, 148, 136, 0.7), transparent);
             pointer-events: none;
             z-index: -1;
         }
         
+        /* Header */
         header {
-            text-align: center;
-            padding: 20px 0;
-            margin-bottom: 20px;
+            padding: 15px 0;
+            margin-bottom: 15px;
             color: var(--white);
             position: relative;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
         
-        .logo {
+        .user-info {
             display: flex;
-            justify-content: center;
-            align-items: center;
-            margin-bottom: 10px;
+            flex-direction: column;
+        }
+        
+        .username {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 3px;
+        }
+        
+        .date-display {
+            font-size: 0.9rem;
+            opacity: 0.9;
         }
         
         .logo-icon {
@@ -75,38 +89,22 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            margin-right: 10px;
             color: var(--primary);
             font-size: 24px;
             font-weight: bold;
         }
         
-        h1 {
-            font-size: 2rem;
-            margin-bottom: 5px;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
-        }
-        
-        .username {
-            font-size: 1.2rem;
-            opacity: 0.9;
-        }
-        
-        .date-display {
-            font-size: 0.9rem;
-            margin-top: 5px;
-            opacity: 0.8;
-        }
-        
+        /* Container */
         .container {
             max-width: 800px;
             margin: 0 auto;
         }
         
+        /* Cards */
         .card {
             background: var(--white);
             border-radius: 15px;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
             padding: 25px;
             margin-bottom: 25px;
             transition: all 0.3s ease;
@@ -115,7 +113,7 @@
         .card-title {
             font-size: 1.5rem;
             margin-bottom: 20px;
-            color: var(--dark);
+            color: var(--primary-dark);
             display: flex;
             align-items: center;
         }
@@ -125,6 +123,7 @@
             color: var(--primary);
         }
         
+        /* Exercise List */
         .exercise-list {
             list-style: none;
             transition: opacity 0.2s ease;
@@ -133,6 +132,7 @@
         .exercise-item {
             display: flex;
             align-items: center;
+            justify-content: space-between;
             padding: 15px;
             margin-bottom: 12px;
             background: var(--gray);
@@ -140,6 +140,7 @@
             border-left: 4px solid var(--primary);
             transition: all 0.3s ease;
             animation: fadeIn 0.5s ease;
+            cursor: pointer;
         }
         
         @keyframes fadeIn {
@@ -149,36 +150,33 @@
         
         .exercise-item:hover {
             transform: translateY(-3px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-        }
-        
-        .exercise-icon {
-            width: 40px;
-            height: 40px;
-            background: var(--primary-light);
-            border-radius: 50%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin-right: 15px;
-            color: var(--white);
-            flex-shrink: 0;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.08);
+            background: var(--light);
         }
         
         .exercise-info {
             flex-grow: 1;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
         
         .exercise-name {
             font-weight: 600;
             font-size: 1.1rem;
+            color: var(--primary-dark);
         }
         
         .exercise-reps {
-            font-size: 0.9rem;
-            color: #666;
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--secondary);
+            background: rgba(249, 115, 22, 0.1);
+            padding: 4px 10px;
+            border-radius: 20px;
         }
         
+        /* Complete Button */
         .complete-btn {
             display: block;
             width: 100%;
@@ -191,7 +189,7 @@
             font-weight: bold;
             cursor: pointer;
             transition: all 0.3s ease;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
             margin-top: 20px;
             position: relative;
             overflow: hidden;
@@ -210,26 +208,19 @@
         }
         
         .complete-btn:hover {
-            background: #e68a00;
+            background: #e76a11;
             transform: translateY(-3px);
-            box-shadow: 0 6px 12px rgba(0,0,0,0.25);
-        }
-        
-        .complete-btn:hover::after {
-            transform: rotate(30deg) translate(20%, 20%);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.2);
         }
         
         .complete-btn:disabled {
-            background: #cccccc;
+            background: #cbd5e1;
             cursor: not-allowed;
             transform: none;
             box-shadow: none;
         }
         
-        .complete-btn:disabled::after {
-            display: none;
-        }
-        
+        /* Progress */
         .progress-container {
             text-align: center;
         }
@@ -250,7 +241,7 @@
         
         .progress-day {
             aspect-ratio: 1;
-            background: #e0e0e0;
+            background: #e2e8f0;
             border-radius: 4px;
             display: flex;
             flex-direction: column;
@@ -301,13 +292,13 @@
         .day-header {
             text-align: center;
             font-size: 0.7rem;
-            color: #666;
+            color: #475569;
             font-weight: bold;
         }
         
         .week-label {
             font-size: 0.8rem;
-            color: #666;
+            color: #475569;
             margin-top: 20px;
             margin-bottom: 5px;
             text-align: left;
@@ -320,7 +311,6 @@
             border-radius: 10px;
             text-align: center;
             margin-top: 20px;
-            display: none;
             animation: fadeIn 0.5s ease;
         }
         
@@ -329,33 +319,13 @@
             margin-bottom: 10px;
         }
         
-        .wave {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            overflow: hidden;
-            line-height: 0;
-            z-index: -1;
-        }
-        
-        .wave svg {
-            position: relative;
-            display: block;
-            width: calc(100% + 1.3px);
-            height: 70px;
-        }
-        
-        .wave .shape-fill {
-            fill: rgba(255, 255, 255, 0.15);
-        }
-        
+        /* Footer */
         footer {
             position: fixed;
             bottom: 0;
             left: 0;
             width: 100%;
-            background: rgba(10, 44, 92, 0.9);
+            background: rgba(15, 23, 42, 0.9);
             color: var(--white);
             text-align: center;
             padding: 15px;
@@ -364,14 +334,12 @@
         }
         
         footer a {
-            color: var(--secondary);
+            color: var(--secondary-light);
             text-decoration: none;
         }
         
+        /* Controls */
         .theme-toggle {
-            position: fixed;
-            top: 15px;
-            right: 15px;
             background: rgba(255, 255, 255, 0.2);
             border: none;
             border-radius: 50%;
@@ -382,13 +350,15 @@
             justify-content: center;
             cursor: pointer;
             z-index: 100;
+            color: white;
+            font-size: 1.2rem;
         }
         
         .progress-info {
             text-align: center;
             margin-top: 15px;
             font-size: 0.9rem;
-            color: #666;
+            color: #475569;
         }
         
         .sync-indicator {
@@ -410,11 +380,149 @@
             to { transform: translateX(0); opacity: 1; }
         }
         
+        /* Modals */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal-content {
+            background: var(--white);
+            border-radius: 15px;
+            width: 90%;
+            max-width: 500px;
+            padding: 25px;
+            position: relative;
+            animation: modalIn 0.3s ease;
+        }
+        
+        @keyframes modalIn {
+            from { transform: translateY(-20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .modal-title {
+            font-size: 1.8rem;
+            color: var(--primary-dark);
+        }
+        
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--text-light);
+        }
+        
+        .exercise-detail {
+            margin-bottom: 25px;
+        }
+        
+        .detail-item {
+            margin-bottom: 15px;
+        }
+        
+        .detail-label {
+            font-weight: 600;
+            color: var(--primary-dark);
+            margin-bottom: 5px;
+            display: block;
+        }
+        
+        .detail-value {
+            font-size: 1.1rem;
+        }
+        
+        .instructions {
+            background: var(--gray);
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+        
+        .back-btn {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            background: var(--primary);
+            color: var(--white);
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+        
+        .back-btn:hover {
+            background: var(--primary-dark);
+        }
+        
+        /* Welcome Modal */
+        .welcome-modal {
+            display: flex;
+        }
+        
+        .welcome-content {
+            text-align: center;
+            padding: 40px 25px;
+        }
+        
+        .welcome-logo {
+            font-size: 3rem;
+            margin-bottom: 20px;
+            color: var(--primary);
+        }
+        
+        .welcome-title {
+            font-size: 2.5rem;
+            color: var(--primary-dark);
+            margin-bottom: 15px;
+        }
+        
+        .welcome-text {
+            color: var(--text);
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+        
+        .start-btn {
+            display: inline-block;
+            padding: 15px 40px;
+            background: var(--secondary);
+            color: var(--white);
+            border: none;
+            border-radius: 10px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .start-btn:hover {
+            background: #e76a11;
+            transform: translateY(-3px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        
+        /* Responsive */
         @media (min-width: 768px) {
-            h1 {
-                font-size: 2.5rem;
-            }
-            
             .username {
                 font-size: 1.4rem;
             }
@@ -437,45 +545,31 @@
             }
         }
         
-        @keyframes splash {
-            0% {
-                transform: scale(0);
-                opacity: 1;
+        @media (max-width: 480px) {
+            .card {
+                padding: 20px 15px;
             }
-            100% {
-                transform: scale(2);
-                opacity: 0;
+            
+            .exercise-name {
+                font-size: 1rem;
             }
-        }
-        
-        .splash {
-            position: absolute;
-            background: rgba(255, 255, 255, 0.7);
-            border-radius: 50%;
-            pointer-events: none;
-            animation: splash 0.6s ease-out;
+            
+            .exercise-reps {
+                font-size: 0.9rem;
+                padding: 3px 8px;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="wave">
-        <svg data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 120" preserveAspectRatio="none">
-            <path d="M0,0V46.29c47.79,22.2,103.59,32.17,158,28,70.36-5.37,136.33-33.31,206.8-37.5C438.64,32.43,512.34,53.67,583,72.05c69.27,18,138.3,24.88,209.4,13.08,36.15-6,69.85-17.84,104.45-29.34C989.49,25,1113-14.29,1200,52.47V0Z" opacity=".25" class="shape-fill"></path>
-            <path d="M0,0V15.81C13,36.92,27.64,56.86,47.69,72.05,99.41,111.27,165,111,224.58,91.58c31.15-10.15,60.09-26.07,89.67-39.8,40.92-19,84.73-46,130.83-49.67,36.26-2.85,70.9,9.42,98.6,31.56,31.77,25.39,62.32,62,103.63,73,40.44,10.79,81.35-6.69,119.13-24.28s75.16-39,116.92-43.05c59.73-5.85,113.28,22.88,168.9,38.84,30.2,8.66,59,6.17,87.09-7.5,22.43-10.89,48-26.93,60.65-49.24V0Z" opacity=".5" class="shape-fill"></path>
-            <path d="M0,0V5.63C149.93,59,314.09,71.32,475.83,42.57c43-7.64,84.23-20.12,127.61-26.46,59-8.63,112.48,12.24,165.56,35.4C827.93,77.22,886,95.24,951.2,90c86.53-7,172.46-45.71,248.8-84.81V0Z" class="shape-fill"></path>
-        </svg>
-    </div>
-    
     <div class="sync-indicator" id="syncIndicator">Syncing workout data...</div>
-    <button class="theme-toggle" id="themeToggle">🌙</button>
     
     <header>
-        <div class="logo">
-            <div class="logo-icon">🏊</div>
-            <h1>SwimFit Tracker</h1>
+        <div class="user-info">
+            <div class="username" id="username">Welcome, Athlete!</div>
+            <div class="date-display" id="currentDate"></div>
         </div>
-        <div class="username" id="username">Welcome, Athlete!</div>
-        <div class="date-display" id="currentDate"></div>
+        <button class="theme-toggle" id="themeToggle">🌙</button>
     </header>
     
     <div class="container">
@@ -485,7 +579,7 @@
                 <!-- Exercises will be populated by JS -->
             </ul>
             <button class="complete-btn" id="completeBtn">Complete Today's Workout</button>
-            <div class="congrats-message" id="congratsMessage">
+            <div class="congrats-message" id="congratsMessage" style="display:none">
                 <h3>Great Job! 🎉</h3>
                 <p>You've completed today's workout. Keep up the great work!</p>
             </div>
@@ -501,22 +595,61 @@
     </div>
     
     <footer>
-        <p>&copy; 2023 SwimFit Tracker | <a href="https://example.com/coaching" target="_blank">Get Personal Coaching</a></p>
+        <p>&copy; 2023 SwimFit Tracker | <a href="#" target="_blank">Get Personal Coaching</a></p>
     </footer>
+    
+    <!-- Exercise Detail Modal -->
+    <div class="modal" id="exerciseModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title" id="exerciseModalTitle">Exercise Name</h2>
+                <button class="modal-close" id="closeExerciseModal">✕</button>
+            </div>
+            
+            <div class="exercise-detail">
+                <div class="detail-item">
+                    <span class="detail-label">Reps/Time</span>
+                    <div class="detail-value" id="exerciseModalReps">10 reps</div>
+                </div>
+                
+                <div class="detail-item">
+                    <span class="detail-label">Instructions</span>
+                    <div class="instructions" id="exerciseModalInstructions">
+                        Detailed instructions for the exercise will appear here. 
+                        This section provides guidance on proper form and technique.
+                    </div>
+                </div>
+            </div>
+            
+            <button class="back-btn" id="backToWorkoutBtn">Back to Workout</button>
+        </div>
+    </div>
+    
+    <!-- Welcome Modal -->
+    <div class="modal welcome-modal" id="welcomeModal">
+        <div class="modal-content">
+            <div class="welcome-content">
+                <div class="welcome-logo">🏊</div>
+                <h1 class="welcome-title">SwimFit Tracker</h1>
+                <p class="welcome-text">Track your workouts, monitor your progress, and achieve your fitness goals with our easy-to-use tracker.</p>
+                <button class="start-btn" id="startBtn">Get Started</button>
+            </div>
+        </div>
+    </div>
     
     <script>
         // Configuration
         const CSV_URL = 'https://docs.google.com/spreadsheets/d/1-irk7wEJwBAC4X7I5t0zpLlZOCfKxK66mApDs8q7Tj0/export?format=csv';
         
         const DEFAULT_EXERCISES = [
-            { name: "Push-ups", reps: "10" },
-            { name: "Dips", reps: "10" },
-            { name: "Squats", reps: "10" },
-            { name: "Lunges", reps: "10" },
-            { name: "Horse Stand", reps: "1 min" },
-            { name: "Knee Tucks", reps: "10" },
-            { name: "Mountain Climbers", reps: "10" },
-            { name: "Plank", reps: "30 sec" }
+            { name: "Push-ups", reps: "10", instructions: "Keep your body straight and lower until your elbows are at 90 degrees" },
+            { name: "Dips", reps: "10", instructions: "Use parallel bars, lower yourself until shoulders are below elbows" },
+            { name: "Squats", reps: "10", instructions: "Feet shoulder-width apart, lower until thighs are parallel to floor" },
+            { name: "Lunges", reps: "10", instructions: "Step forward with one leg, lower until both knees are bent at 90 degrees" },
+            { name: "Horse Stand", reps: "1 min", instructions: "Stand with feet wide apart, knees bent at 90 degrees, hold position" },
+            { name: "Knee Tucks", reps: "10", instructions: "Lie on back, bring knees to chest, then extend legs back out" },
+            { name: "Mountain Climbers", reps: "10", instructions: "Start in plank position, bring one knee to chest, alternate quickly" },
+            { name: "Plank", reps: "30 sec", instructions: "Hold body straight on forearms and toes, engage core muscles" }
         ];
 
         // Database setup
@@ -562,10 +695,10 @@
         // Apply theme on load
         function applyTheme() {
             if (uiState.darkMode) {
-                document.body.style.background = 'linear-gradient(135deg, #0a2c5c, #051a38)';
+                document.body.style.background = 'linear-gradient(135deg, #0c4a6e, #082f49)';
                 document.getElementById('themeToggle').textContent = '☀️';
             } else {
-                document.body.style.background = 'linear-gradient(135deg, var(--primary), var(--dark))';
+                document.body.style.background = 'linear-gradient(135deg, var(--primary), var(--primary-dark))';
                 document.getElementById('themeToggle').textContent = '🌙';
             }
         }
@@ -744,29 +877,7 @@
             });
         }
         
-        // Fetch and parse workout config from Google Sheets CSV
-        async function fetchWorkoutConfigFromGoogle() {
-            try {
-                document.getElementById('syncIndicator').style.display = 'block';
-                const response = await fetch(CSV_URL);
-                
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                
-                const csvData = await response.text();
-                return parseCSV(csvData);
-            } catch (error) {
-                console.error('Error fetching CSV:', error);
-                return null;
-            } finally {
-                setTimeout(() => {
-                    document.getElementById('syncIndicator').style.display = 'none';
-                }, 2000);
-            }
-        }
-        
-        // Enhanced CSV parser with error handling
+        // Parse CSV data
         function parseCSV(csvText) {
             try {
                 const lines = csvText.split('\n').filter(line => line.trim() !== '');
@@ -789,7 +900,8 @@
                     if (parts.length >= 2) {
                         exercises.push({
                             name: parts[0] || 'Exercise',
-                            reps: parts[1] || '10'
+                            reps: parts[1] || '10',
+                            instructions: parts[2] || 'No instructions available'
                         });
                     }
                 }
@@ -806,27 +918,37 @@
             if (!navigator.onLine) return;
             
             try {
-                let config = await fetchWorkoutConfigFromGoogle();
+                document.getElementById('syncIndicator').style.display = 'block';
+                const response = await fetch(CSV_URL);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const csvData = await response.text();
+                const config = parseCSV(csvData);
                 
                 if (!config) {
                     console.log('Using cached exercises (CSV unavailable)');
-                    config = await getWorkoutConfig();
+                    return;
                 }
                 
-                if (config) {
-                    await saveWorkoutConfig(config);
-                    
-                    const exerciseList = document.getElementById('exerciseList');
-                    exerciseList.style.opacity = '0';
-                    
-                    setTimeout(() => {
-                        uiState.workoutConfig = config;
-                        populateExercises();
-                        exerciseList.style.opacity = '1';
-                    }, 200);
-                }
+                await saveWorkoutConfig(config);
+                
+                const exerciseList = document.getElementById('exerciseList');
+                exerciseList.style.opacity = '0';
+                
+                setTimeout(() => {
+                    uiState.workoutConfig = config;
+                    populateExercises();
+                    exerciseList.style.opacity = '1';
+                }, 200);
             } catch (error) {
                 console.error('Background sync error:', error);
+            } finally {
+                setTimeout(() => {
+                    document.getElementById('syncIndicator').style.display = 'none';
+                }, 2000);
             }
         }
         
@@ -855,9 +977,9 @@
             uiState.workoutConfig.forEach((ex, index) => {
                 const li = document.createElement('li');
                 li.className = 'exercise-item';
+                li.dataset.index = index;
                 li.style.animationDelay = `${index * 0.05}s`;
                 li.innerHTML = `
-                    <div class="exercise-icon">${index % 2 === 0 ? '💪' : '🏊'}</div>
                     <div class="exercise-info">
                         <div class="exercise-name">${ex.name}</div>
                         <div class="exercise-reps">${ex.reps}</div>
@@ -865,9 +987,26 @@
                 `;
                 exerciseList.appendChild(li);
             });
+            
+            // Add event listeners to exercise items
+            document.querySelectorAll('.exercise-item').forEach(item => {
+                item.addEventListener('click', () => {
+                    const index = item.dataset.index;
+                    showExerciseModal(index);
+                });
+            });
         }
         
-        // Create progress chart with perfect week alignment
+        // Show exercise detail modal
+        function showExerciseModal(index) {
+            const exercise = uiState.workoutConfig[index];
+            document.getElementById('exerciseModalTitle').textContent = exercise.name;
+            document.getElementById('exerciseModalReps').textContent = exercise.reps;
+            document.getElementById('exerciseModalInstructions').textContent = exercise.instructions;
+            document.getElementById('exerciseModal').style.display = 'flex';
+        }
+        
+        // Create progress chart
         async function createProgressChart() {
             const container = document.getElementById('progressChart');
             const infoContainer = document.getElementById('progressInfo');
@@ -982,7 +1121,7 @@
             btn.textContent = 'Completing...';
             
             // Get current date at midnight local time
-            const today = getDateAtMidlight(new Date());
+            const today = getDateAtMidnight(new Date());
             const todayStr = formatDate(today);
             
             // Check if already completed
@@ -1048,7 +1187,7 @@
                 document.getElementById('username').textContent = `Welcome, ${uiState.username}!`;
                 setCurrentDate();
                 
-                // Load workout config (will try CSV first, then fallback to cached/default)
+                // Load workout config
                 uiState.workoutConfig = await getWorkoutConfig();
                 populateExercises();
                 
@@ -1064,30 +1203,42 @@
                 
                 // Start background sync
                 setTimeout(syncWorkoutConfigInBackground, 1000);
+                
+                // Show welcome modal on first visit
+                if (!localStorage.getItem('hasVisited')) {
+                    document.getElementById('welcomeModal').style.display = 'flex';
+                    localStorage.setItem('hasVisited', 'true');
+                }
             } catch (error) {
                 console.error('Initialization error:', error);
             }
         }
 
-        // Service Worker Registration
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('sw.js')
-                    .then(registration => {
-                        console.log('Service Worker registered: ', registration);
-                    })
-                    .catch(error => {
-                        console.log('Service Worker registration failed: ', error);
-                    });
-            });
-        }
-        
         // Initialize app when DOM is loaded
         document.addEventListener('DOMContentLoaded', () => {
             initApp();
             
+            // Event listeners
             document.getElementById('completeBtn').addEventListener('click', handleCompleteWorkout);
             document.getElementById('themeToggle').addEventListener('click', toggleTheme);
+            document.getElementById('closeExerciseModal').addEventListener('click', () => {
+                document.getElementById('exerciseModal').style.display = 'none';
+            });
+            document.getElementById('backToWorkoutBtn').addEventListener('click', () => {
+                document.getElementById('exerciseModal').style.display = 'none';
+            });
+            document.getElementById('startBtn').addEventListener('click', () => {
+                document.getElementById('welcomeModal').style.display = 'none';
+            });
+            
+            // Close modals when clicking outside content
+            document.querySelectorAll('.modal').forEach(modal => {
+                modal.addEventListener('click', (e) => {
+                    if (e.target === modal) {
+                        modal.style.display = 'none';
+                    }
+                });
+            });
         });
     </script>
 </body>

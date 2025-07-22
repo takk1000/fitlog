@@ -521,6 +521,107 @@
             box-shadow: 0 4px 12px rgba(0,0,0,0.15);
         }
         
+        /* Settings Icon */
+        .settings-icon {
+            margin-left: auto;
+            cursor: pointer;
+            font-size: 1.3rem;
+            padding: 8px;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+        
+        .settings-icon:hover {
+            background: rgba(13, 148, 136, 0.1);
+            transform: rotate(30deg);
+        }
+        
+        /* Settings Modal */
+        .settings-group {
+            margin-bottom: 20px;
+        }
+        
+        .settings-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--primary-dark);
+        }
+        
+        .settings-input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            font-size: 1rem;
+            margin-bottom: 10px;
+            transition: border 0.3s ease;
+        }
+        
+        .settings-input:focus {
+            border-color: var(--primary);
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(13, 148, 136, 0.2);
+        }
+        
+        .instructions-box {
+            background: var(--gray);
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 15px;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+        
+        .instructions-box h4 {
+            margin-bottom: 8px;
+            color: var(--primary-dark);
+        }
+        
+        .instructions-box ol {
+            padding-left: 20px;
+            margin-bottom: 10px;
+        }
+        
+        .instructions-box li {
+            margin-bottom: 8px;
+        }
+        
+        .new-sheet-link {
+            display: inline-block;
+            margin-top: 10px;
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+        
+        .new-sheet-link:hover {
+            color: var(--primary-dark);
+            text-decoration: underline;
+        }
+        
+        .save-settings-btn {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            background: var(--success);
+            color: var(--white);
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 20px;
+        }
+        
+        .save-settings-btn:hover {
+            background: #16a34a;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        
         /* Responsive */
         @media (min-width: 768px) {
             .username {
@@ -574,7 +675,10 @@
     
     <div class="container">
         <div class="card">
-            <h2 class="card-title"><i>🏅</i> Today's Workout</h2>
+            <div style="display: flex; align-items: center;">
+                <h2 class="card-title"><i>🏅</i> Today's Workout</h2>
+                <div class="settings-icon" id="settingsIcon">⚙️</div>
+            </div>
             <ul class="exercise-list" id="exerciseList">
                 <!-- Exercises will be populated by JS -->
             </ul>
@@ -637,9 +741,40 @@
         </div>
     </div>
     
+    <!-- Settings Modal -->
+    <div class="modal" id="settingsModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Workout Settings</h2>
+                <button class="modal-close" id="closeSettingsModal">✕</button>
+            </div>
+            
+            <div class="settings-group">
+                <label class="settings-label" for="sheetUrl">Google Sheets URL or ID:</label>
+                <input type="text" class="settings-input" id="sheetUrl" 
+                    placeholder="Enter spreadsheet URL or ID">
+                
+                <div class="instructions-box">
+                    <h4>How to create your custom workout:</h4>
+                    <ol>
+                        <li>Create a new Google Sheet using the link below</li>
+                        <li>Add your exercises with reps in columns (Exercise, Reps, Instructions)</li>
+                        <li>Make sure the sheet is public: Share → Change to "Anyone with the link"</li>
+                        <li>Copy the spreadsheet URL or ID and paste it above</li>
+                    </ol>
+                    <a href="https://sheet.new" target="_blank" class="new-sheet-link">
+                        Create a new Google Sheet
+                    </a>
+                </div>
+            </div>
+            
+            <button class="save-settings-btn" id="saveSettingsBtn">Save Settings</button>
+        </div>
+    </div>
+    
     <script>
         // Configuration
-        const CSV_URL = 'https://docs.google.com/spreadsheets/d/1-irk7wEJwBAC4X7I5t0zpLlZOCfKxK66mApDs8q7Tj0/export?format=csv';
+        let CSV_URL = 'https://docs.google.com/spreadsheets/d/1-irk7wEJwBAC4X7I5t0zpLlZOCfKxK66mApDs8q7Tj0/export?format=csv';
         
         const DEFAULT_EXERCISES = [
             { name: "Push-ups", reps: "10", instructions: "Keep your body straight and lower until your elbows are at 90 degrees" },
@@ -654,7 +789,7 @@
 
         // Database setup
         const DB_NAME = 'workoutTrackerDB';
-        const DB_VERSION = 6;
+        const DB_VERSION = 7;
         const STORE_NAME = 'workouts';
         const SETTINGS_STORE = 'settings';
         const WORKOUT_CONFIG_STORE = 'workoutConfig';
@@ -667,7 +802,8 @@
             today: new Date(),
             firstWorkoutDate: null,
             daysCompleted: 0,
-            workoutConfig: []
+            workoutConfig: [],
+            customSheetId: null
         };
         
         // Helper function to get date at midnight (local time)
@@ -952,6 +1088,49 @@
             }
         }
         
+        // Save sheet ID to IndexedDB
+        async function saveSheetId(sheetId) {
+            await saveSetting('customSheetId', sheetId);
+            uiState.customSheetId = sheetId;
+            
+            // Update CSV URL
+            if (sheetId) {
+                CSV_URL = `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv`;
+            } else {
+                CSV_URL = 'https://docs.google.com/spreadsheets/d/1-irk7wEJwBAC4X7I5t0zpLlZOCfKxK66mApDs8q7Tj0/export?format=csv';
+            }
+        }
+        
+        // Get sheet ID from IndexedDB
+        async function getSheetId() {
+            const sheetId = await getSetting('customSheetId');
+            return sheetId;
+        }
+        
+        // Extract spreadsheet ID from URL
+        function extractSpreadsheetId(url) {
+            try {
+                // If it's just an ID
+                if (!url.includes('/') && url.length > 30) return url;
+                
+                // Parse URL
+                const parsedUrl = new URL(url);
+                const pathParts = parsedUrl.pathname.split('/');
+                
+                // Find the 'd' segment that contains the ID
+                const dIndex = pathParts.indexOf('d');
+                if (dIndex !== -1 && pathParts.length > dIndex + 1) {
+                    return pathParts[dIndex + 1];
+                }
+                
+                // Try to find by pattern
+                const idMatch = url.match(/[-\w]{25,}/);
+                return idMatch ? idMatch[0] : null;
+            } catch (e) {
+                return null;
+            }
+        }
+        
         // Get username from URL
         function getUsername() {
             const urlParams = new URLSearchParams(window.location.search);
@@ -1172,6 +1351,47 @@
             applyTheme();
         }
         
+        // Show settings modal
+        function showSettingsModal() {
+            const modal = document.getElementById('settingsModal');
+            const input = document.getElementById('sheetUrl');
+            
+            // Populate with current value if exists
+            if (uiState.customSheetId) {
+                input.value = uiState.customSheetId;
+            } else {
+                input.value = '';
+            }
+            
+            modal.style.display = 'flex';
+        }
+        
+        // Save settings from modal
+        async function saveSettings() {
+            const input = document.getElementById('sheetUrl');
+            const value = input.value.trim();
+            
+            if (value) {
+                const sheetId = extractSpreadsheetId(value);
+                
+                if (sheetId) {
+                    await saveSheetId(sheetId);
+                    alert('Settings saved successfully! Your workout will sync with your custom sheet.');
+                    document.getElementById('settingsModal').style.display = 'none';
+                    
+                    // Trigger sync with new sheet
+                    syncWorkoutConfigInBackground();
+                } else {
+                    alert('Invalid Google Sheets URL or ID. Please try again.');
+                }
+            } else {
+                // Clear custom sheet
+                await saveSheetId(null);
+                alert('Settings saved! Using default workout plan.');
+                document.getElementById('settingsModal').style.display = 'none';
+            }
+        }
+
         // App Initialization
         async function initApp() {
             try {
@@ -1181,6 +1401,13 @@
                 const firstWorkoutTimestamp = await getSetting('firstWorkoutDate');
                 if (firstWorkoutTimestamp) {
                     uiState.firstWorkoutDate = new Date(parseInt(firstWorkoutTimestamp));
+                }
+                
+                // Load custom sheet ID if it exists
+                const sheetId = await getSheetId();
+                if (sheetId) {
+                    uiState.customSheetId = sheetId;
+                    CSV_URL = `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv`;
                 }
                 
                 uiState.username = getUsername();
@@ -1230,6 +1457,11 @@
             document.getElementById('startBtn').addEventListener('click', () => {
                 document.getElementById('welcomeModal').style.display = 'none';
             });
+            document.getElementById('settingsIcon').addEventListener('click', showSettingsModal);
+            document.getElementById('closeSettingsModal').addEventListener('click', () => {
+                document.getElementById('settingsModal').style.display = 'none';
+            });
+            document.getElementById('saveSettingsBtn').addEventListener('click', saveSettings);
             
             // Close modals when clicking outside content
             document.querySelectorAll('.modal').forEach(modal => {

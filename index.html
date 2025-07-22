@@ -3,56 +3,39 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Track your daily workouts with this easy-to-use tracker">
+    <meta name="description" content="Minimalist workout tracker with intuitive exercise selection">
     <meta name="theme-color" content="#008080">
-    <title>SwimFit Tracker</title>
+    <title>MinimalFit Tracker</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
         }
         
         :root {
             --teal-primary: #008080;
             --teal-light: #4DB6AC;
             --teal-dark: #006064;
-            --brown-primary: #8B4513;
-            --brown-light: #D2B48C;
-            --brown-dark: #5D4037;
-            --accent: #FF9800;
-            --light: #E0F2F1;
+            --accent: #FF6B35;
+            --light: #f8fafb;
             --dark: #263238;
-            --success: #4CAF50;
-            --warning: #FFC107;
-            --danger: #F44336;
             --white: #ffffff;
-            --gray: #f5f5f5;
+            --gray: #f0f3f5;
             --text: #333333;
+            --border: #e0e6e9;
         }
         
         body {
-            background: linear-gradient(135deg, var(--teal-primary), var(--teal-dark));
+            background-color: var(--light);
             color: var(--text);
             min-height: 100vh;
             padding: 15px;
-            padding-bottom: 120px;
+            padding-bottom: 80px;
             position: relative;
             overflow-x: hidden;
-            transition: background 0.5s ease;
-        }
-        
-        body::after {
-            content: "";
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            height: 20%;
-            background: linear-gradient(to top, rgba(0, 128, 128, 0.7), transparent);
-            pointer-events: none;
-            z-index: -1;
         }
         
         /* Loading Modal */
@@ -62,13 +45,13 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.8);
+            background: rgba(255, 255, 255, 0.95);
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
             z-index: 1000;
-            color: white;
+            color: var(--teal-dark);
             transition: opacity 0.5s ease;
         }
         
@@ -85,49 +68,51 @@
         }
         
         .loading-icon {
-            width: 80px;
-            height: 80px;
-            background: var(--brown-light);
+            width: 60px;
+            height: 60px;
+            background: var(--teal-primary);
             border-radius: 50%;
             display: flex;
             justify-content: center;
             align-items: center;
-            color: var(--teal-primary);
-            font-size: 36px;
+            color: var(--white);
+            font-size: 24px;
             margin-bottom: 15px;
             animation: pulse 2s infinite;
         }
         
         @keyframes pulse {
             0% { transform: scale(1); }
-            50% { transform: scale(1.1); }
+            50% { transform: scale(1.05); }
             100% { transform: scale(1); }
         }
         
         .loading-title {
-            font-size: 2.2rem;
+            font-size: 1.8rem;
             margin-bottom: 10px;
             text-align: center;
+            font-weight: 600;
+            color: var(--teal-dark);
         }
         
         .loading-username {
-            font-size: 1.4rem;
+            font-size: 1.1rem;
             opacity: 0.9;
             margin-bottom: 5px;
         }
         
         .loading-date {
-            font-size: 1rem;
+            font-size: 0.9rem;
             opacity: 0.8;
             margin-top: 10px;
         }
         
         .loading-spinner {
-            border: 4px solid rgba(255, 255, 255, 0.3);
+            border: 3px solid rgba(0, 128, 128, 0.1);
             border-radius: 50%;
-            border-top: 4px solid var(--accent);
-            width: 40px;
-            height: 40px;
+            border-top: 3px solid var(--teal-primary);
+            width: 30px;
+            height: 30px;
             animation: spin 1s linear infinite;
             margin-top: 20px;
         }
@@ -137,89 +122,91 @@
             100% { transform: rotate(360deg); }
         }
         
+        /* Header */
         header {
             text-align: center;
             padding: 15px 0 5px;
-            margin-bottom: 15px;
-            color: var(--white);
+            margin-bottom: 20px;
             position: relative;
         }
         
-        .logo {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin-bottom: 5px;
-        }
-        
-        .logo-icon {
-            width: 50px;
-            height: 50px;
-            background: var(--brown-light);
-            border-radius: 50%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin-right: 10px;
-            color: var(--teal-primary);
-            font-size: 24px;
-            font-weight: bold;
-        }
-        
         h1 {
-            font-size: 1.8rem;
+            font-size: 1.6rem;
             margin-bottom: 5px;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            font-weight: 600;
+            color: var(--teal-dark);
+        }
+        
+        .subtitle {
+            font-size: 0.9rem;
+            color: #777;
+            margin-bottom: 15px;
         }
         
         .container {
-            max-width: 800px;
+            max-width: 500px;
             margin: 0 auto;
         }
         
+        /* Cards */
         .card {
             background: var(--white);
-            border-radius: 15px;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
             padding: 20px;
             margin-bottom: 15px;
             transition: all 0.3s ease;
         }
         
-        .card-title {
-            font-size: 1.4rem;
-            margin-bottom: 15px;
-            color: var(--teal-dark);
+        .section-header {
             display: flex;
+            justify-content: space-between;
             align-items: center;
-            padding-bottom: 10px;
-            border-bottom: 2px solid var(--brown-light);
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border);
         }
         
-        .card-title i {
+        .section-title {
+            font-size: 1.1rem;
+            color: var(--teal-dark);
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+        }
+        
+        .section-icon {
             margin-right: 10px;
             color: var(--teal-primary);
         }
         
+        .progress-info {
+            font-size: 0.85rem;
+            color: #777;
+            background: var(--gray);
+            padding: 5px 10px;
+            border-radius: 15px;
+        }
+        
+        /* Exercise List */
         .exercise-list {
             list-style: none;
             transition: opacity 0.2s ease;
-            max-height: 50vh;
-            overflow-y: auto;
-            padding-right: 5px;
             margin-bottom: 15px;
         }
         
         .exercise-item {
             display: flex;
             align-items: center;
-            padding: 12px;
-            margin-bottom: 10px;
-            background: var(--light);
-            border-radius: 10px;
-            border-left: 4px solid var(--teal-primary);
+            padding: 14px 12px;
+            margin-bottom: 8px;
+            background: var(--white);
+            border-radius: 8px;
+            border: 1px solid var(--border);
             transition: all 0.3s ease;
             animation: fadeIn 0.5s ease;
+            cursor: pointer;
+            justify-content: space-between;
         }
         
         @keyframes fadeIn {
@@ -227,85 +214,47 @@
             to { opacity: 1; transform: translateY(0); }
         }
         
-        .exercise-item:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-            background: var(--teal-light);
-            color: white;
+        .exercise-item.selected {
+            background: rgba(0, 128, 128, 0.08);
+            border-color: var(--teal-light);
+            border-left: 4px solid var(--teal-primary);
         }
         
-        .exercise-icon {
-            width: 40px;
-            height: 40px;
-            background: var(--brown-light);
-            border-radius: 50%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin-right: 12px;
-            color: var(--brown-dark);
-            flex-shrink: 0;
-            font-size: 18px;
-        }
-        
-        .exercise-info {
-            flex-grow: 1;
+        .exercise-item.completed {
+            background: rgba(76, 175, 80, 0.08);
+            border-color: #c8e6c9;
+            border-left: 4px solid #4CAF50;
         }
         
         .exercise-name {
-            font-weight: 600;
-            font-size: 1.1rem;
-            margin-bottom: 3px;
+            font-weight: 500;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+        }
+        
+        .exercise-icon {
+            margin-right: 12px;
+            color: var(--teal-primary);
+            font-size: 18px;
+            width: 24px;
+            text-align: center;
         }
         
         .exercise-reps {
-            font-size: 0.9rem;
-            color: var(--brown-dark);
-            display: flex;
-            align-items: center;
-        }
-        
-        .reps-count {
-            display: inline-block;
-            background: var(--teal-primary);
-            color: white;
-            padding: 2px 8px;
-            border-radius: 10px;
-            margin-right: 8px;
-        }
-        
-        .coaching-cta {
-            display: flex;
-            align-items: center;
-            padding: 15px;
-            margin: 20px 0 10px;
-            background: linear-gradient(135deg, var(--accent), #e68a00);
-            border-radius: 10px;
-            color: white;
-            font-weight: bold;
+            font-weight: 600;
+            font-size: 1rem;
+            color: var(--teal-dark);
+            background: rgba(0, 128, 128, 0.1);
+            padding: 4px 10px;
+            border-radius: 15px;
+            min-width: 60px;
             text-align: center;
-            border-left: 4px solid var(--brown-dark);
-            animation: pulse 2s infinite;
         }
         
-        .coaching-icon {
-            font-size: 28px;
-            margin-right: 15px;
-            flex-shrink: 0;
-        }
-        
-        .coaching-content {
-            flex-grow: 1;
-        }
-        
-        .coaching-title {
-            font-size: 1.2rem;
-            margin-bottom: 5px;
-        }
-        
-        .coaching-subtitle {
-            font-size: 0.9rem;
-            opacity: 0.9;
+        .exercise-item.completed .exercise-reps {
+            background: rgba(76, 175, 80, 0.15);
+            color: #388E3C;
         }
         
         .complete-btn-container {
@@ -321,338 +270,91 @@
             display: block;
             width: 100%;
             padding: 16px;
-            background: var(--brown-primary);
+            background: var(--teal-primary);
             color: var(--white);
             border: none;
             border-radius: 10px;
-            font-size: 1.2rem;
-            font-weight: bold;
+            font-size: 1.1rem;
+            font-weight: 600;
             cursor: pointer;
             transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .complete-btn::after {
-            content: "";
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: rgba(255,255,255,0.2);
-            transform: rotate(30deg);
-            transition: all 0.6s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
         }
         
         .complete-btn:hover {
-            background: var(--brown-dark);
-            transform: translateY(-3px);
-            box-shadow: 0 6px 15px rgba(0,0,0,0.3);
-        }
-        
-        .complete-btn:hover::after {
-            transform: rotate(30deg) translate(20%, 20%);
+            background: var(--teal-dark);
+            transform: translateY(-2px);
         }
         
         .complete-btn:disabled {
             background: #cccccc;
             cursor: not-allowed;
             transform: none;
-            box-shadow: none;
         }
         
-        .complete-btn:disabled::after {
-            display: none;
-        }
-        
-        .progress-container {
-            text-align: center;
-        }
-        
-        .progress-title {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin-bottom: 15px;
-        }
-        
-        .progress-grid {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            gap: 5px;
-            margin-top: 15px;
-        }
-        
-        .progress-day {
-            aspect-ratio: 1;
-            background: #e0e0e0;
-            border-radius: 4px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            font-size: 0.7rem;
-            transition: all 0.3s ease;
-            position: relative;
-        }
-        
-        .progress-day.empty {
-            background: transparent;
-            box-shadow: none;
-        }
-        
-        .progress-day.completed {
-            background: var(--teal-primary);
-            color: white;
-            transform: scale(1.05);
-        }
-        
-        .progress-day.unsynced {
-            background: var(--teal-light);
-            color: white;
-        }
-        
-        .progress-day.today {
-            box-shadow: 0 0 0 2px var(--accent);
-        }
-        
-        .day-number {
-            font-size: 0.8rem;
-            font-weight: bold;
-        }
-        
-        .day-date {
-            font-size: 0.6rem;
-            opacity: 0.8;
-            margin-top: 2px;
-        }
-        
-        .week-header {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            gap: 5px;
-            margin-bottom: 5px;
-        }
-        
-        .day-header {
-            text-align: center;
-            font-size: 0.7rem;
-            color: var(--brown-dark);
-            font-weight: bold;
-        }
-        
-        .week-label {
-            font-size: 0.8rem;
-            color: var(--brown-dark);
-            margin-top: 20px;
-            margin-bottom: 5px;
-            text-align: left;
-        }
-        
-        .congrats-message {
-            background: var(--teal-primary);
-            color: white;
-            padding: 15px;
-            border-radius: 10px;
-            text-align: center;
-            margin-top: 15px;
-            display: none;
-            animation: fadeIn 0.5s ease;
-        }
-        
-        .congrats-message h3 {
-            font-size: 1.4rem;
-            margin-bottom: 10px;
-        }
-        
-        .wave {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            overflow: hidden;
-            line-height: 0;
-            z-index: -1;
-        }
-        
-        .wave svg {
-            position: relative;
-            display: block;
-            width: calc(100% + 1.3px);
-            height: 70px;
-        }
-        
-        .wave .shape-fill {
-            fill: rgba(139, 69, 19, 0.15);
-        }
-        
-        footer {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            background: var(--brown-dark);
-            color: var(--white);
-            text-align: center;
-            padding: 12px;
-            font-size: 0.8rem;
-            z-index: 10;
-        }
-        
-        footer a {
-            color: var(--brown-light);
-            text-decoration: none;
-            font-weight: 600;
-        }
-        
-        .theme-toggle {
-            position: fixed;
-            top: 15px;
-            right: 15px;
-            background: rgba(255, 255, 255, 0.2);
-            border: none;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            z-index: 100;
-        }
-        
-        .progress-info {
-            text-align: center;
-            margin-top: 15px;
-            font-size: 0.9rem;
-            color: var(--brown-dark);
-            padding: 10px;
-            background: var(--light);
-            border-radius: 8px;
-        }
-        
-        .sync-indicator {
-            position: fixed;
-            top: 15px;
-            left: 15px;
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 20px;
-            padding: 5px 15px;
-            font-size: 0.8rem;
-            color: white;
-            display: none;
-            z-index: 100;
-            animation: slideIn 0.3s ease;
-        }
-        
-        @keyframes slideIn {
-            from { transform: translateX(-100%); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
-        }
-        
-        .offline-indicator {
-            position: fixed;
-            top: 15px;
-            left: 15px;
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 20px;
-            padding: 5px 15px;
-            font-size: 0.8rem;
-            color: white;
-            display: none;
-            z-index: 100;
-            animation: slideIn 0.3s ease;
-        }
-        
-        /* History section */
-        .history-container {
-            max-height: 300px;
-            overflow-y: auto;
-            border: 1px solid #eee;
-            border-radius: 10px;
-            padding: 15px;
-            margin-top: 15px;
-        }
-        
-        .history-item {
-            padding: 10px;
-            border-bottom: 1px solid #eee;
-            display: flex;
-            justify-content: space-between;
-        }
-        
-        .history-item:last-child {
-            border-bottom: none;
-        }
-        
-        .history-date {
-            font-weight: bold;
-            color: var(--brown-dark);
-        }
-        
-        .history-status {
-            padding: 3px 8px;
-            border-radius: 12px;
-            font-size: 0.8rem;
-        }
-        
-        .status-completed {
-            background-color: var(--teal-primary);
-            color: white;
-        }
-        
-        /* Bottom navigation */
+        /* Bottom Navigation */
         .bottom-nav {
             position: fixed;
             bottom: 0;
             left: 0;
             width: 100%;
-            background: var(--brown-dark);
+            background: var(--white);
             display: flex;
             justify-content: space-around;
-            padding: 10px 0;
+            padding: 12px 0;
             z-index: 100;
-            box-shadow: 0 -2px 10px rgba(0,0,0,0.2);
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+            border-top: 1px solid var(--border);
         }
         
         .nav-item {
             display: flex;
             flex-direction: column;
             align-items: center;
-            color: var(--brown-light);
+            color: #777;
             text-decoration: none;
-            font-size: 0.8rem;
+            font-size: 0.7rem;
             flex: 1;
             padding: 5px;
+            transition: all 0.3s;
         }
         
         .nav-item.active {
-            color: var(--accent);
+            color: var(--teal-primary);
         }
         
         .nav-icon {
-            font-size: 1.4rem;
+            font-size: 1.2rem;
             margin-bottom: 3px;
         }
         
-        /* Streak animation */
-        @keyframes streakPulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.1); }
-            100% { transform: scale(1); }
+        /* Stats */
+        .stats-container {
+            display: flex;
+            justify-content: space-between;
+            margin: 15px 0;
         }
         
-        .streak-badge {
-            background: var(--accent);
-            color: white;
-            padding: 5px 10px;
-            border-radius: 20px;
+        .stat-box {
+            background: var(--white);
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+            flex: 1;
+            margin: 0 5px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+        }
+        
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: 600;
+            color: var(--teal-primary);
+            margin-bottom: 5px;
+        }
+        
+        .stat-label {
             font-size: 0.8rem;
-            margin-top: 10px;
-            display: inline-block;
-            animation: streakPulse 1.5s infinite;
+            color: #777;
         }
         
         /* Mobile optimizations */
@@ -662,324 +364,138 @@
                 padding-bottom: 100px;
             }
             
-            .loading-title {
-                font-size: 2.8rem;
-            }
-            
-            .loading-username {
-                font-size: 1.8rem;
-            }
-            
-            h1 {
-                font-size: 2.5rem;
+            .container {
+                max-width: 600px;
             }
             
             .card {
                 padding: 25px;
-                margin-bottom: 25px;
+                margin-bottom: 20px;
             }
             
             .exercise-item {
-                padding: 15px;
-                margin-bottom: 12px;
-            }
-            
-            .complete-btn-container {
-                position: relative;
-                bottom: auto;
-                left: auto;
-                padding: 0;
-                margin-top: 20px;
-            }
-            
-            .complete-btn {
-                padding: 18px;
-            }
-            
-            .progress-grid {
-                gap: 8px;
-            }
-            
-            .progress-day {
-                font-size: 0.8rem;
+                padding: 16px 15px;
             }
             
             .bottom-nav {
                 display: none;
             }
-            
-            .tab-container {
-                display: flex;
-                margin-bottom: 15px;
-                border-bottom: 2px solid var(--brown-light);
-                background: var(--white);
-                border-radius: 8px;
-                overflow: hidden;
-            }
-            
-            .tab {
-                padding: 12px 20px;
-                cursor: pointer;
-                transition: all 0.3s;
-                text-align: center;
-                flex: 1;
-                font-weight: 600;
-                color: var(--brown-dark);
-            }
-            
-            .tab.active {
-                background: var(--teal-primary);
-                color: var(--white);
-            }
-        }
-        
-        @media (max-width: 767px) {
-            .tab-container {
-                display: none;
-            }
-            
-            .card {
-                margin-bottom: 10px;
-            }
-            
-            .exercise-list {
-                max-height: 40vh;
-            }
-        }
-        
-        @keyframes splash {
-            0% {
-                transform: scale(0);
-                opacity: 1;
-            }
-            100% {
-                transform: scale(2);
-                opacity: 0;
-            }
-        }
-        
-        .splash {
-            position: absolute;
-            background: rgba(255, 255, 255, 0.7);
-            border-radius: 50%;
-            pointer-events: none;
-            animation: splash 0.6s ease-out;
-        }
-        
-        /* Exercise completion progress */
-        .exercise-progress {
-            height: 5px;
-            background: #e0e0e0;
-            border-radius: 3px;
-            margin-top: 5px;
-            overflow: hidden;
-        }
-        
-        .progress-bar {
-            height: 100%;
-            background: var(--teal-primary);
-            width: 0%;
-            transition: width 0.5s ease;
-        }
-        
-        /* Mobile exercise list scroll */
-        .exercise-scroll-container {
-            max-height: 50vh;
-            overflow-y: auto;
-            margin-bottom: 15px;
-            padding-right: 5px;
-        }
-        
-        /* Section headers */
-        .section-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-            padding-bottom: 10px;
-            border-bottom: 2px solid var(--brown-light);
-        }
-        
-        .section-title {
-            font-size: 1.4rem;
-            color: var(--teal-dark);
-            display: flex;
-            align-items: center;
-        }
-        
-        .section-icon {
-            margin-right: 10px;
-            color: var(--teal-primary);
         }
     </style>
 </head>
 <body>
     <div class="loading-modal" id="loadingModal">
         <div class="loading-logo">
-            <div class="loading-icon">🏊</div>
-            <h2 class="loading-title">SwimFit Tracker</h2>
+            <div class="loading-icon">🏋️</div>
+            <h2 class="loading-title">MinimalFit Tracker</h2>
             <div class="loading-username" id="loadingUsername">Welcome, Athlete!</div>
             <div class="loading-date" id="loadingDate"></div>
         </div>
         <div class="loading-spinner"></div>
     </div>
     
-    <div class="wave">
-        <svg data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 120" preserveAspectRatio="none">
-            <path d="M0,0V46.29c47.79,22.2,103.59,32.17,158,28,70.36-5.37,136.33-33.31,206.8-37.5C438.64,32.43,512.34,53.67,583,72.05c69.27,18,138.3,24.88,209.4,13.08,36.15-6,69.85-17.84,104.45-29.34C989.49,25,1113-14.29,1200,52.47V0Z" opacity=".25" class="shape-fill"></path>
-            <path d="M0,0V15.81C13,36.92,27.64,56.86,47.69,72.05,99.41,111.27,165,111,224.58,91.58c31.15-10.15,60.09-26.07,89.67-39.8,40.92-19,84.73-46,130.83-49.67,36.26-2.85,70.9,9.42,98.6,31.56,31.77,25.39,62.32,62,103.63,73,40.44,10.79,81.35-6.69,119.13-24.28s75.16-39,116.92-43.05c59.73-5.85,113.28,22.88,168.9,38.84,30.2,8.66,59,6.17,87.09-7.5,22.43-10.89,48-26.93,60.65-49.24V0Z" opacity=".5" class="shape-fill"></path>
-            <path d="M0,0V5.63C149.93,59,314.09,71.32,475.83,42.57c43-7.64,84.23-20.12,127.61-26.46,59-8.63,112.48,12.24,165.56,35.4C827.93,77.22,886,95.24,951.2,90c86.53-7,172.46-45.71,248.8-84.81V0Z" class="shape-fill"></path>
-        </svg>
-    </div>
-    
-    <div class="sync-indicator" id="syncIndicator">Syncing workout data...</div>
-    <div class="offline-indicator" id="offlineIndicator">Offline Mode</div>
-    <button class="theme-toggle" id="themeToggle">🌙</button>
-    
-    <header>
-        <div class="logo">
-            <div class="logo-icon">🏊</div>
-            <h1>SwimFit Tracker</h1>
-        </div>
-        <div id="streakBadge" class="streak-badge" style="display: none;">🔥 3-Day Streak!</div>
-    </header>
-    
     <div class="container">
-        <div class="tab-container">
-            <div class="tab active" data-tab="workout">Workout</div>
-            <div class="tab" data-tab="history">History</div>
-            <div class="tab" data-tab="progress">Progress</div>
-        </div>
+        <header>
+            <h1>MinimalFit Tracker</h1>
+            <div class="subtitle">Simple. Effective. Focused.</div>
+        </header>
         
-        <div id="workoutTab">
-            <div class="card">
-                <div class="section-header">
-                    <div class="section-title">
-                        <i class="section-icon">🏅</i> Today's Workout
-                    </div>
-                    <div class="progress-info">Day <span id="dayCount">1</span> of 90</div>
-                </div>
-                
-                <div class="exercise-scroll-container">
-                    <ul class="exercise-list" id="exerciseList">
-                        <!-- Exercises will be populated by JS -->
-                    </ul>
-                    
-                    <!-- Coaching CTA -->
-                    <div class="coaching-cta" id="coachingCta">
-                        <div class="coaching-icon">👨‍🏫</div>
-                        <div class="coaching-content">
-                            <div class="coaching-title">Get Personal Coaching</div>
-                            <div class="coaching-subtitle">Unlock your full potential with expert guidance</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <div id="historyTab" class="card" style="display: none;">
-            <h2 class="card-title"><i>📅</i> Workout History</h2>
-            <div class="history-container" id="historyContainer">
-                <!-- History items will be populated by JS -->
-            </div>
-        </div>
-        
-        <div id="progressTab" class="card" style="display: none;">
+        <div class="card">
             <div class="section-header">
                 <div class="section-title">
-                    <i class="section-icon">📈</i> 90-Day Progress
+                    <i class="fas fa-dumbbell section-icon"></i>Today's Workout
                 </div>
+                <div class="progress-info">Day <span id="dayCount">1</span> of 30</div>
             </div>
-            <div id="progressChart">
-                <!-- Progress chart will be populated by JS -->
-            </div>
-            <div class="progress-info" id="progressInfo"></div>
+            
+            <ul class="exercise-list" id="exerciseList">
+                <!-- Exercises will be populated by JS -->
+            </ul>
         </div>
         
-        <div class="congrats-message" id="congratsMessage">
-            <h3>Great Job! 🎉</h3>
-            <p>You've completed today's workout. Keep up the great work!</p>
+        <div class="stats-container">
+            <div class="stat-box">
+                <div class="stat-value" id="completedExercises">0</div>
+                <div class="stat-label">Completed</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-value" id="totalExercises">8</div>
+                <div class="stat-label">Exercises</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-value">🔥 3</div>
+                <div class="stat-label">Day Streak</div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="section-header">
+                <div class="section-title">
+                    <i class="fas fa-clock section-icon"></i>Workout Timer
+                </div>
+            </div>
+            <div style="text-align: center; margin: 20px 0;">
+                <div style="font-size: 2.5rem; font-weight: 600; color: var(--teal-dark);">00:00</div>
+                <div style="display: flex; justify-content: center; gap: 15px; margin-top: 15px;">
+                    <button style="background: var(--teal-primary); color: white; border: none; border-radius: 50%; width: 50px; height: 50px; font-size: 1.2rem;">
+                        <i class="fas fa-play"></i>
+                    </button>
+                    <button style="background: #f5f5f5; color: var(--text); border: none; border-radius: 50%; width: 50px; height: 50px; font-size: 1.2rem;">
+                        <i class="fas fa-redo"></i>
+                    </button>
+                </div>
+            </div>
         </div>
     </div>
     
     <div class="complete-btn-container">
-        <button class="complete-btn" id="completeBtn">Complete Today's Workout</button>
+        <button class="complete-btn" id="completeBtn">Complete Workout</button>
     </div>
     
     <!-- Bottom Navigation (Mobile) -->
     <div class="bottom-nav">
-        <a href="#" class="nav-item active" data-tab="workout">
-            <span class="nav-icon">💪</span>
-            <span>Workout</span>
+        <a href="#" class="nav-item active">
+            <span class="nav-icon"><i class="fas fa-home"></i></span>
+            <span>Home</span>
         </a>
-        <a href="#" class="nav-item" data-tab="history">
-            <span class="nav-icon">📅</span>
+        <a href="#" class="nav-item">
+            <span class="nav-icon"><i class="fas fa-history"></i></span>
             <span>History</span>
         </a>
-        <a href="#" class="nav-item" data-tab="progress">
-            <span class="nav-icon">📈</span>
-            <span>Progress</span>
+        <a href="#" class="nav-item">
+            <span class="nav-icon"><i class="fas fa-chart-line"></i></span>
+            <span>Stats</span>
+        </a>
+        <a href="#" class="nav-item">
+            <span class="nav-icon"><i class="fas fa-cog"></i></span>
+            <span>Settings</span>
         </a>
     </div>
     
-    <footer>
-        <p>&copy; 2023 SwimFit Tracker | <a href="#" id="coachingLink">Privacy Policy</a></p>
-    </footer>
-    
     <script>
-        // Configuration
-        const CSV_URL = 'https://docs.google.com/spreadsheets/d/1-irk7wEJwBAC4X7I5t0zpLlZOCfKxK66mApDs8q7Tj0/export?format=csv';
-        
-        const DEFAULT_EXERCISES = [
-            { name: "Push-ups", reps: "10" },
-            { name: "Dips", reps: "10" },
-            { name: "Squats", reps: "10" },
-            { name: "Lunges", reps: "10" },
-            { name: "Horse Stand", reps: "1 min" },
-            { name: "Knee Tucks", reps: "10" },
-            { name: "Mountain Climbers", reps: "10" },
-            { name: "Plank", reps: "30 sec" }
+        // Sample exercise data
+        const exercises = [
+            { name: "Push-ups", reps: "15", icon: "fa-hand-push", selected: false, completed: false },
+            { name: "Squats", reps: "20", icon: "fa-person-walking", selected: false, completed: false },
+            { name: "Plank", reps: "60s", icon: "fa-stopwatch", selected: false, completed: false },
+            { name: "Lunges", reps: "12", icon: "fa-shoe-prints", selected: false, completed: false },
+            { name: "Dips", reps: "15", icon: "fa-chair", selected: false, completed: false },
+            { name: "Crunches", reps: "25", icon: "fa-person-burst", selected: false, completed: false },
+            { name: "Mountain Climbers", reps: "30", icon: "fa-mountain", selected: false, completed: false },
+            { name: "Burpees", reps: "10", icon: "fa-person-running", selected: false, completed: false }
         ];
-
-        // Database setup
-        const DB_NAME = 'workoutTrackerDB';
-        const DB_VERSION = 6;
-        const STORE_NAME = 'workouts';
-        const SETTINGS_STORE = 'settings';
-        const WORKOUT_CONFIG_STORE = 'workoutConfig';
-        let db;
         
         // UI State
         const uiState = {
-            darkMode: localStorage.getItem('darkMode') === 'true',
             username: '',
             today: new Date(),
-            firstWorkoutDate: null,
-            daysCompleted: 0,
-            workoutConfig: [],
-            currentTab: 'workout',
-            currentStreak: 0
+            selectedExercise: null,
+            completedCount: 0
         };
-        
-        // Helper function to get date at midnight (local time)
-        function getDateAtMidnight(date) {
-            const d = new Date(date);
-            d.setHours(0, 0, 0, 0);
-            return d;
-        }
-
-        // Format date as YYYY-MM-DD (local time)
-        function formatDate(date) {
-            const d = getDateAtMidnight(date);
-            const year = d.getFullYear();
-            const month = String(d.getMonth() + 1).padStart(2, '0');
-            const day = String(d.getDate()).padStart(2, '0');
-            return `${year}-${month}-${day}`;
-        }
         
         // Format date as M/D for display (local time)
         function formatShortDate(date) {
-            const d = getDateAtMidnight(date);
+            const d = new Date(date);
             return `${d.getMonth() + 1}/${d.getDate()}`;
         }
         
@@ -990,281 +506,6 @@
                 month: 'short',
                 day: 'numeric'
             });
-        }
-        
-        // Apply theme on load
-        function applyTheme() {
-            if (uiState.darkMode) {
-                document.body.style.background = 'linear-gradient(135deg, #006064, #004d40)';
-                document.getElementById('themeToggle').textContent = '☀️';
-            } else {
-                document.body.style.background = 'linear-gradient(135deg, var(--teal-primary), var(--teal-dark))';
-                document.getElementById('themeToggle').textContent = '🌙';
-            }
-        }
-        
-        applyTheme();
-        
-        // Open or create IndexedDB
-        function openDB() {
-            return new Promise((resolve, reject) => {
-                const request = indexedDB.open(DB_NAME, DB_VERSION);
-                
-                request.onerror = (event) => {
-                    console.error('Database error:', event.target.error);
-                    reject(event.target.error);
-                };
-                
-                request.onupgradeneeded = (event) => {
-                    db = event.target.result;
-                    
-                    if (!db.objectStoreNames.contains(STORE_NAME)) {
-                        const store = db.createObjectStore(STORE_NAME, { keyPath: 'date' });
-                        store.createIndex('date', 'date', { unique: true });
-                        store.createIndex('completed', 'completed', { unique: false });
-                        store.createIndex('synced', 'synced', { unique: false });
-                    }
-                    
-                    if (!db.objectStoreNames.contains(SETTINGS_STORE)) {
-                        db.createObjectStore(SETTINGS_STORE, { keyPath: 'name' });
-                    }
-                    
-                    if (!db.objectStoreNames.contains(WORKOUT_CONFIG_STORE)) {
-                        db.createObjectStore(WORKOUT_CONFIG_STORE, { keyPath: 'id' });
-                    }
-                };
-                
-                request.onsuccess = (event) => {
-                    db = event.target.result;
-                    resolve(db);
-                };
-            });
-        }
-        
-        // Save setting to IndexedDB
-        async function saveSetting(name, value) {
-            if (!db) await openDB();
-            
-            return new Promise((resolve, reject) => {
-                const transaction = db.transaction([SETTINGS_STORE], 'readwrite');
-                const store = transaction.objectStore(SETTINGS_STORE);
-                
-                const setting = { name, value };
-                const request = store.put(setting);
-                
-                request.onsuccess = () => resolve();
-                request.onerror = (event) => reject(event.target.error);
-            });
-        }
-        
-        // Get setting from IndexedDB
-        async function getSetting(name) {
-            if (!db) await openDB();
-            
-            return new Promise((resolve, reject) => {
-                const transaction = db.transaction([SETTINGS_STORE], 'readonly');
-                const store = transaction.objectStore(SETTINGS_STORE);
-                const request = store.get(name);
-                
-                request.onsuccess = (event) => {
-                    resolve(event.target.result ? event.target.result.value : null);
-                };
-                
-                request.onerror = (event) => reject(event.target.error);
-            });
-        }
-        
-        // Save workout config to IndexedDB
-        async function saveWorkoutConfig(config) {
-            if (!db) await openDB();
-            
-            return new Promise((resolve, reject) => {
-                const transaction = db.transaction([WORKOUT_CONFIG_STORE], 'readwrite');
-                const store = transaction.objectStore(WORKOUT_CONFIG_STORE);
-                
-                const configData = {
-                    id: 'workoutConfig',
-                    exercises: config,
-                    lastUpdated: new Date().toISOString()
-                };
-                
-                const request = store.put(configData);
-                
-                request.onsuccess = () => resolve();
-                request.onerror = (event) => reject(event.target.error);
-            });
-        }
-        
-        // Get workout config from IndexedDB
-        async function getWorkoutConfig() {
-            if (!db) await openDB();
-            
-            return new Promise((resolve, reject) => {
-                const transaction = db.transaction([WORKOUT_CONFIG_STORE], 'readonly');
-                const store = transaction.objectStore(WORKOUT_CONFIG_STORE);
-                const request = store.get('workoutConfig');
-                
-                request.onsuccess = (event) => {
-                    resolve(event.target.result ? event.target.result.exercises : DEFAULT_EXERCISES);
-                };
-                
-                request.onerror = (event) => reject(event.target.error);
-            });
-        }
-        
-        // Save workout completion to IndexedDB
-        async function saveWorkoutCompletion(date, username) {
-            if (!db) await openDB();
-            
-            // Ensure we're saving the date at midnight local time
-            const workoutDate = getDateAtMidnight(date);
-            const dateStr = formatDate(workoutDate);
-            
-            return new Promise((resolve, reject) => {
-                const transaction = db.transaction([STORE_NAME], 'readwrite');
-                const store = transaction.objectStore(STORE_NAME);
-                
-                const workout = {
-                    date: dateStr,
-                    completed: true,
-                    synced: false,
-                    workoutId: 1,
-                    username: username,
-                    timestamp: new Date().toISOString(),
-                    // Store the actual date object as timestamp for reference
-                    dateObj: workoutDate.getTime()
-                };
-                
-                const request = store.put(workout);
-                
-                request.onsuccess = () => resolve(workoutDate);
-                request.onerror = (event) => reject(event.target.error);
-            });
-        }
-        
-        // Get workout completion status from IndexedDB
-        async function getWorkoutCompletion(date) {
-            if (!db) await openDB();
-            
-            return new Promise((resolve, reject) => {
-                const transaction = db.transaction([STORE_NAME], 'readonly');
-                const store = transaction.objectStore(STORE_NAME);
-                const request = store.get(date);
-                
-                request.onsuccess = (event) => {
-                    const workout = event.target.result;
-                    resolve({
-                        completed: workout ? workout.completed : false,
-                        synced: workout ? workout.synced : true
-                    });
-                };
-                
-                request.onerror = (event) => reject(event.target.error);
-            });
-        }
-        
-        // Get all workouts from IndexedDB
-        async function getAllWorkouts() {
-            if (!db) await openDB();
-            
-            return new Promise((resolve, reject) => {
-                const transaction = db.transaction([STORE_NAME], 'readonly');
-                const store = transaction.objectStore(STORE_NAME);
-                const request = store.getAll();
-                
-                request.onsuccess = (event) => resolve(event.target.result || []);
-                request.onerror = (event) => reject(event.target.error);
-            });
-        }
-        
-        // Fetch and parse workout config from Google Sheets CSV
-        async function fetchWorkoutConfigFromGoogle() {
-            try {
-                document.getElementById('syncIndicator').style.display = 'block';
-                const response = await fetch(CSV_URL);
-                
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                
-                const csvData = await response.text();
-                return parseCSV(csvData);
-            } catch (error) {
-                console.error('Error fetching CSV:', error);
-                return null;
-            } finally {
-                setTimeout(() => {
-                    document.getElementById('syncIndicator').style.display = 'none';
-                }, 2000);
-            }
-        }
-        
-        // Enhanced CSV parser with error handling
-        function parseCSV(csvText) {
-            try {
-                const lines = csvText.split('\n').filter(line => line.trim() !== '');
-                const exercises = [];
-                
-                // Skip header if it contains "exercise" or "rep"
-                const hasHeader = lines.length > 0 && 
-                                (lines[0].toLowerCase().includes('exercise') || 
-                                 lines[0].toLowerCase().includes('rep'));
-                const startLine = hasHeader ? 1 : 0;
-
-                for (let i = startLine; i < lines.length; i++) {
-                    const line = lines[i].trim();
-                    if (!line) continue;
-                    
-                    // Handle quoted values and commas within values
-                    const parts = line.split(/,(?=(?:[^"]*"[^"]*")*[^"]*$)/)
-                                      .map(part => part.replace(/^"|"$/g, '').trim());
-                    
-                    if (parts.length >= 2) {
-                        exercises.push({
-                            name: parts[0] || 'Exercise',
-                            reps: parts[1] || '10'
-                        });
-                    }
-                }
-                
-                return exercises.length > 0 ? exercises : null;
-            } catch (error) {
-                console.error('Error parsing CSV:', error);
-                return null;
-            }
-        }
-        
-        // Sync workout config with Google Sheets CSV in background
-        async function syncWorkoutConfigInBackground() {
-            if (!navigator.onLine) {
-                document.getElementById('offlineIndicator').style.display = 'block';
-                return;
-            }
-            
-            try {
-                document.getElementById('offlineIndicator').style.display = 'none';
-                let config = await fetchWorkoutConfigFromGoogle();
-                
-                if (!config) {
-                    console.log('Using cached exercises (CSV unavailable)');
-                    config = await getWorkoutConfig();
-                }
-                
-                if (config) {
-                    await saveWorkoutConfig(config);
-                    
-                    const exerciseList = document.getElementById('exerciseList');
-                    exerciseList.style.opacity = '0';
-                    
-                    setTimeout(() => {
-                        uiState.workoutConfig = config;
-                        populateExercises();
-                        exerciseList.style.opacity = '1';
-                    }, 200);
-                }
-            } catch (error) {
-                console.error('Background sync error:', error);
-            }
         }
         
         // Get username from URL
@@ -1290,413 +531,105 @@
             const exerciseList = document.getElementById('exerciseList');
             exerciseList.innerHTML = '';
             
-            uiState.workoutConfig.forEach((ex, index) => {
+            exercises.forEach((ex, index) => {
                 const li = document.createElement('li');
-                li.className = 'exercise-item';
-                li.style.animationDelay = `${index * 0.05}s`;
+                li.className = `exercise-item ${ex.selected ? 'selected' : ''} ${ex.completed ? 'completed' : ''}`;
+                li.dataset.index = index;
                 li.innerHTML = `
-                    <div class="exercise-icon">${index % 2 === 0 ? '💪' : '🏊'}</div>
-                    <div class="exercise-info">
-                        <div class="exercise-name">${ex.name}</div>
-                        <div class="exercise-reps">
-                            <span class="reps-count">${ex.reps}</span>
-                            ${ex.name.includes('min') || ex.name.includes('sec') ? '' : 'reps'}
-                        </div>
-                        <div class="exercise-progress">
-                            <div class="progress-bar" style="width:0%"></div>
-                        </div>
+                    <div class="exercise-name">
+                        <i class="fas ${ex.icon} exercise-icon"></i>
+                        ${ex.name}
                     </div>
+                    <div class="exercise-reps">${ex.reps}</div>
                 `;
+                
+                // Add click event to select exercise
+                li.addEventListener('click', () => {
+                    selectExercise(index);
+                });
+                
                 exerciseList.appendChild(li);
             });
         }
         
-        // Create progress chart with perfect week alignment
-        async function createProgressChart() {
-            const container = document.getElementById('progressChart');
-            const infoContainer = document.getElementById('progressInfo');
-            container.innerHTML = '';
-            infoContainer.innerHTML = '';
+        // Select an exercise
+        function selectExercise(index) {
+            // Clear previous selection
+            exercises.forEach(ex => ex.selected = false);
             
-            if (!uiState.firstWorkoutDate) {
-                infoContainer.textContent = "Start tracking by completing your first workout!";
-                return;
-            }
+            // Select new exercise
+            exercises[index].selected = true;
+            uiState.selectedExercise = index;
             
-            const workouts = await getAllWorkouts();
-            const workoutMap = new Map(workouts.map(w => [w.date, w]));
-            
-            // Get today's date at midnight local time
-            const today = getDateAtMidnight(new Date());
-            const firstWorkoutDate = getDateAtMidnight(uiState.firstWorkoutDate);
-            
-            // Calculate days since first workout (Day 1 is the first workout date)
-            const daysSinceStart = Math.floor((today - firstWorkoutDate) / (1000 * 60 * 60 * 24));
-            const currentDay = Math.min(daysSinceStart + 1, 90); // +1 because Day 1 is first workout
-            
-            // Update day counter
-            document.getElementById('dayCount').textContent = currentDay;
-            
-            // Format first workout date for display
-            const formattedFirstDate = firstWorkoutDate.toLocaleDateString('en-US', { 
-                weekday: 'short', 
-                year: 'numeric', 
-                month: 'short', 
-                day: 'numeric' 
-            });
-            
-            infoContainer.textContent = `Day ${currentDay} of 90 (Started ${formattedFirstDate})`;
-            
-            // Create week headers (Sunday to Saturday)
-            const weekHeader = document.createElement('div');
-            weekHeader.className = 'week-header';
-            ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].forEach(day => {
-                const header = document.createElement('div');
-                header.className = 'day-header';
-                header.textContent = day;
-                weekHeader.appendChild(header);
-            });
-            container.appendChild(weekHeader);
-            
-            // Get day of week for first workout (0=Sunday)
-            const firstDayOfWeek = firstWorkoutDate.getDay();
-            
-            // Create all 90 days starting from first workout date
-            const days = Array.from({ length: 90 }, (_, i) => {
-                const date = new Date(firstWorkoutDate);
-                date.setDate(firstWorkoutDate.getDate() + i);
-                return {
-                    dayNumber: i + 1, // Day numbers start at 1
-                    date: date,
-                    dateStr: formatDate(date)
-                };
-            });
-            
-            // Calculate total weeks needed (including partial first week)
-            const totalWeeks = Math.ceil((firstDayOfWeek + 90) / 7);
-            
-            let dayCounter = 0;
-            for (let week = 0; week < totalWeeks; week++) {
-                const grid = document.createElement('div');
-                grid.className = 'progress-grid';
+            // Update UI
+            populateExercises();
+        }
+        
+        // Mark exercise as completed
+        function completeExercise() {
+            if (uiState.selectedExercise !== null) {
+                exercises[uiState.selectedExercise].completed = true;
+                uiState.completedCount++;
+                document.getElementById('completedExercises').textContent = uiState.completedCount;
                 
-                // For first week, add empty cells before the first workout day
-                if (week === 0) {
-                    for (let i = 0; i < firstDayOfWeek; i++) {
-                        const dayEl = document.createElement('div');
-                        dayEl.className = 'progress-day empty';
-                        dayEl.innerHTML = '<div class="day-number"></div>';
-                        grid.appendChild(dayEl);
-                    }
-                }
+                // Clear selection
+                uiState.selectedExercise = null;
+                exercises.forEach(ex => ex.selected = false);
                 
-                // Add days for this week
-                for (let dayOfWeek = (week === 0 ? firstDayOfWeek : 0); 
-                     dayOfWeek < 7 && dayCounter < 90; 
-                     dayOfWeek++) {
-                    
-                    const day = days[dayCounter];
-                    const dayEl = document.createElement('div');
-                    dayEl.className = 'progress-day';
-                    dayEl.innerHTML = `
-                        <div class="day-number">${day.dayNumber}</div>
-                        <div class="day-date">${formatShortDate(day.date)}</div>
-                    `;
-                    
-                    // Mark completed workouts
-                    const status = workoutMap.get(day.dateStr);
-                    if (status) {
-                        dayEl.classList.add(status.synced ? 'completed' : 'unsynced');
-                    }
-                    
-                    // Mark today
-                    if (day.dateStr === formatDate(today)) {
-                        dayEl.classList.add('today');
-                    }
-                    
-                    grid.appendChild(dayEl);
-                    dayCounter++;
-                }
-                
-                container.appendChild(grid);
+                // Update UI
+                populateExercises();
             }
         }
         
         // Handle complete button click
-        async function handleCompleteWorkout() {
+        function handleCompleteWorkout() {
             const btn = document.getElementById('completeBtn');
             btn.disabled = true;
-            btn.textContent = 'Completing...';
+            btn.textContent = 'Workout Completed!';
             
-            // Get current date at midnight local time
-            const today = getDateAtMidnight(new Date());
-            const todayStr = formatDate(today);
-            
-            // Check if already completed
-            const completedStatus = await getWorkoutCompletion(todayStr);
-            if (completedStatus.completed) {
-                updateCompleteButtonState(completedStatus.synced);
-                return;
-            }
-            
-            try {
-                // Save workout and get the exact date used
-                const workoutDate = await saveWorkoutCompletion(today, uiState.username);
-                
-                // Set first workout date if not already set
-                if (!uiState.firstWorkoutDate) {
-                    uiState.firstWorkoutDate = workoutDate;
-                    await saveSetting('firstWorkoutDate', workoutDate.getTime());
-                }
-                
-                // Animate exercise completion
-                const exerciseItems = document.querySelectorAll('.exercise-item');
-                exerciseItems.forEach((item, index) => {
-                    setTimeout(() => {
-                        item.style.backgroundColor = '#dff0d8';
-                        item.style.borderLeftColor = '#4caf50';
-                        item.querySelector('.exercise-icon').style.backgroundColor = '#4caf50';
-                        
-                        // Animate progress bar
-                        const progressBar = item.querySelector('.progress-bar');
-                        progressBar.style.width = '100%';
-                    }, index * 150);
-                });
-                
-                // Show splash effect on button
-                const rect = btn.getBoundingClientRect();
-                const splash = document.createElement('div');
-                splash.className = 'splash';
-                splash.style.width = `${rect.width}px`;
-                splash.style.height = `${rect.height}px`;
-                splash.style.left = `${rect.left}px`;
-                splash.style.top = `${rect.top}px`;
-                document.body.appendChild(splash);
-                
-                setTimeout(() => {
-                    splash.remove();
-                }, 600);
-                
-                // Update UI
-                await createProgressChart();
-                document.getElementById('congratsMessage').style.display = 'block';
-                updateCompleteButtonState(false);
-                
-                // Update streak
-                await updateStreak();
-                await loadHistory();
-                
-                setTimeout(() => {
-                    document.getElementById('congratsMessage').style.display = 'none';
-                }, 5000);
-            } catch (error) {
-                console.error('Error completing workout:', error);
+            // Animate completion
+            setTimeout(() => {
                 btn.disabled = false;
-                btn.textContent = 'Complete Today\'s Workout';
-                alert('Failed to save workout. Please try again.');
-            }
-        }
-        
-        // Update complete button state
-        function updateCompleteButtonState(synced) {
-            const btn = document.getElementById('completeBtn');
-            btn.disabled = true;
-            btn.textContent = synced ? 'Completed!' : 'Completed';
-            btn.style.background = 'var(--success)';
-        }
-        
-        // Theme toggle functionality
-        function toggleTheme() {
-            uiState.darkMode = !uiState.darkMode;
-            localStorage.setItem('darkMode', uiState.darkMode);
-            applyTheme();
-        }
-        
-        // Load workout history
-        async function loadHistory() {
-            const container = document.getElementById('historyContainer');
-            container.innerHTML = '';
-            
-            const workouts = await getAllWorkouts();
-            workouts.sort((a, b) => b.dateObj - a.dateObj);
-            
-            if (workouts.length === 0) {
-                container.innerHTML = '<p style="text-align:center;padding:20px;color:#666;">No workout history yet. Complete your first workout to start tracking!</p>';
-                return;
-            }
-            
-            workouts.forEach(workout => {
-                const item = document.createElement('div');
-                item.className = 'history-item';
-                item.innerHTML = `
-                    <div class="history-date">${formatDisplayDate(workout.dateObj)}</div>
-                    <div class="history-status status-completed">Completed</div>
-                `;
-                container.appendChild(item);
-            });
-        }
-        
-        // Calculate and display streak
-        async function updateStreak() {
-            const workouts = await getAllWorkouts();
-            if (workouts.length === 0) return;
-            
-            // Sort by date descending
-            workouts.sort((a, b) => b.dateObj - a.dateObj);
-            
-            let streak = 0;
-            const today = getDateAtMidnight(new Date());
-            let currentDate = today;
-            
-            // Check consecutive days from today backwards
-            while (true) {
-                const dateStr = formatDate(currentDate);
-                const workout = workouts.find(w => w.date === dateStr);
+                btn.textContent = 'Complete Workout';
+                exercises.forEach(ex => {
+                    ex.completed = false;
+                    ex.selected = false;
+                });
+                uiState.completedCount = 0;
+                document.getElementById('completedExercises').textContent = '0';
+                populateExercises();
                 
-                if (!workout || !workout.completed) break;
-                
-                streak++;
-                // Move to previous day
-                currentDate = new Date(currentDate);
-                currentDate.setDate(currentDate.getDate() - 1);
-            }
-            
-            uiState.currentStreak = streak;
-            
-            if (streak > 1) {
-                const streakBadge = document.getElementById('streakBadge');
-                streakBadge.textContent = `🔥 ${streak}-Day Streak!`;
-                streakBadge.style.display = 'block';
-            }
-        }
-        
-        // Switch tabs
-        function switchTab(tabName) {
-            uiState.currentTab = tabName;
-            
-            // Update top tabs
-            document.querySelectorAll('.tab').forEach(tab => {
-                tab.classList.toggle('active', tab.dataset.tab === tabName);
-            });
-            
-            // Update bottom nav
-            document.querySelectorAll('.nav-item').forEach(item => {
-                item.classList.toggle('active', item.dataset.tab === tabName);
-            });
-            
-            // Show/hide content
-            document.getElementById('workoutTab').style.display = tabName === 'workout' ? 'block' : 'none';
-            document.getElementById('historyTab').style.display = tabName === 'history' ? 'block' : 'none';
-            document.getElementById('progressTab').style.display = tabName === 'progress' ? 'block' : 'none';
-            
-            if (tabName === 'history') {
-                loadHistory();
-            } else if (tabName === 'progress') {
-                createProgressChart();
-            }
+                // Show temporary success state
+                btn.style.background = '#4CAF50';
+                setTimeout(() => {
+                    btn.style.background = '';
+                }, 2000);
+            }, 2000);
         }
         
         // App Initialization
-        async function initApp() {
-            try {
-                await openDB();
-                
-                // Load first workout date if it exists
-                const firstWorkoutTimestamp = await getSetting('firstWorkoutDate');
-                if (firstWorkoutTimestamp) {
-                    uiState.firstWorkoutDate = new Date(parseInt(firstWorkoutTimestamp));
-                }
-                
-                uiState.username = getUsername();
-                document.getElementById('loadingUsername').textContent = `Welcome, ${uiState.username}!`;
-                setCurrentDate();
-                
-                // Load workout config (use local version immediately)
-                uiState.workoutConfig = await getWorkoutConfig();
-                
-                // Start background sync (non-blocking)
-                setTimeout(syncWorkoutConfigInBackground, 1000);
-                
-                // Set up tab switching
-                document.querySelectorAll('.tab').forEach(tab => {
-                    tab.addEventListener('click', () => switchTab(tab.dataset.tab));
-                });
-                
-                // Set up mobile navigation
-                document.querySelectorAll('.nav-item').forEach(item => {
-                    item.addEventListener('click', (e) => {
-                        e.preventDefault();
-                        switchTab(item.dataset.tab);
-                    });
-                });
-                
-                // Set up coaching CTA
-                document.getElementById('coachingCta').addEventListener('click', (e) => {
-                    e.preventDefault();
-                    alert("Personal coaching feature is coming soon!");
-                });
-                
-                // Update offline status
-                window.addEventListener('online', () => {
-                    document.getElementById('offlineIndicator').style.display = 'none';
-                    syncWorkoutConfigInBackground();
-                });
-                
-                window.addEventListener('offline', () => {
-                    document.getElementById('offlineIndicator').style.display = 'block';
-                });
-                
-                if (!navigator.onLine) {
-                    document.getElementById('offlineIndicator').style.display = 'block';
-                }
-                
-                // Hide loading modal after 1.5 seconds
-                setTimeout(() => {
-                    document.getElementById('loadingModal').classList.add('hidden');
-                    populateExercises();
-                    createProgressChart();
-                    updateStreak();
-                    
-                    // Check if today's workout is already completed
-                    const today = getDateAtMidnight(new Date());
-                    const todayStr = formatDate(today);
-                    getWorkoutCompletion(todayStr).then(completedStatus => {
-                        if (completedStatus.completed) {
-                            updateCompleteButtonState(completedStatus.synced);
-                        }
-                    });
-                }, 1500);
-                
-            } catch (error) {
-                console.error('Initialization error:', error);
-            }
+        function initApp() {
+            uiState.username = getUsername();
+            document.getElementById('loadingUsername').textContent = `Welcome, ${uiState.username}!`;
+            setCurrentDate();
+            
+            // Populate exercises
+            populateExercises();
+            
+            // Set total exercises count
+            document.getElementById('totalExercises').textContent = exercises.length;
+            
+            // Hide loading modal after 1.5 seconds
+            setTimeout(() => {
+                document.getElementById('loadingModal').classList.add('hidden');
+            }, 1500);
         }
 
-        // Service Worker Registration
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('sw.js')
-                    .then(registration => {
-                        console.log('Service Worker registered: ', registration);
-                    })
-                    .catch(error => {
-                        console.log('Service Worker registration failed: ', error);
-                    });
-            });
-        }
-        
         // Initialize app when DOM is loaded
         document.addEventListener('DOMContentLoaded', () => {
             initApp();
             
             document.getElementById('completeBtn').addEventListener('click', handleCompleteWorkout);
-            document.getElementById('themeToggle').addEventListener('click', toggleTheme);
-            
-            // Handle coaching link
-            document.getElementById('coachingLink').addEventListener('click', (e) => {
-                e.preventDefault();
-                alert("Privacy policy details will be available soon!");
-            });
         });
     </script>
 </body>
